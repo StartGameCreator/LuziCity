@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;use Illuminate\Database\Eloquent\Relations\HasMany;
+class PodcastSeries extends Model{protected $table='podcast_series';protected $fillable=['title','slug','description','cover_path','author','language','is_published'];protected function casts():array{return['is_published'=>'boolean'];}public function getRouteKeyName():string{return 'slug';}public function episodes():HasMany{return $this->hasMany(PodcastEpisode::class)->orderByDesc('published_at');}public function publishedEpisodes():HasMany{return $this->episodes()->where('is_published',true)->whereNotNull('published_at')->where('published_at','<=',now());}}

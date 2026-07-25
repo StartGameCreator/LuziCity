@@ -1,0 +1,5 @@
+<?php
+namespace Tests\Feature;use App\Models\RssFeed;use App\Models\RssImportedArticle;use App\Services\RssImportService;use Illuminate\Foundation\Testing\RefreshDatabase;use Illuminate\Support\Facades\Http;use Tests\TestCase;
+class AgencyConsolidationTest extends TestCase{use RefreshDatabase;
+ public function test_source_policy_blocks_feed_and_limits_reviewed_collection():void{$blocked=RssFeed::create(['name'=>'Bloqueada','url'=>'https://1.1.1.1/x','is_active'=>true,'source_policy'=>'blocked']);$this->assertFalse(RssFeed::usable()->whereKey($blocked)->exists());$items='';foreach(range(1,5) as $i)$items.="<item><title>Assunto {$i}</title><link>https://example.com/{$i}</link></item>";Http::fake(['https://1.1.1.1/feed'=>Http::response("<rss><channel>{$items}</channel></rss>",200)]);$feed=RssFeed::create(['name'=>'Revisão','url'=>'https://1.1.1.1/feed','is_active'=>true,'source_policy'=>'review','max_items_per_run'=>2,'require_human_review'=>true]);app(RssImportService::class)->importFeed($feed,30);$this->assertSame(2,RssImportedArticle::count());$this->assertSame(0,RssImportedArticle::visible()->count());}
+}

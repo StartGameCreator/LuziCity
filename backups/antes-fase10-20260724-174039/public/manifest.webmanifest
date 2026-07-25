@@ -1,0 +1,55 @@
+{
+    "name": "Luzicity",
+    "short_name": "Luzicity",
+    "description": "Portal de notícias, rádio, classificados e comércio local da Luzicity.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "display_override": [
+        "window-controls-overlay",
+        "standalone",
+        "minimal-ui"
+    ],
+    "background_color": "#f3f6fb",
+    "theme_color": "#0067c0",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/pwa/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "news",
+        "magazines"
+    ],
+    "lang": "pt-BR",
+    "shortcuts": [
+        {
+            "name": "Buscar notícias",
+            "short_name": "Buscar",
+            "url": "/buscar",
+            "icons": [
+                {
+                    "src": "/pwa/icon.svg",
+                    "sizes": "any",
+                    "type": "image/svg+xml"
+                }
+            ]
+        },
+        {
+            "name": "Rádio Web",
+            "short_name": "Rádio",
+            "url": "/radio",
+            "icons": [
+                {
+                    "src": "/pwa/icon.svg",
+                    "sizes": "any",
+                    "type": "image/svg+xml"
+                }
+            ]
+        }
+    ]
+}

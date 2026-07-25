@@ -1,0 +1,133 @@
+<?php
+
+namespace App\Services\AI;
+
+use App\Models\AiExecution;
+use App\Models\AiPromptTemplate;
+use App\Models\AiProvider;
+use Closure;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Throwable;
+
+class AiEditorialManager
+{
+    public function __construct(private readonly AiProviderQuotaService $quota, private readonly AiProviderHealthService $health, private readonly AiCostCalculator $cost, private readonly AiAuditService $audit) {}
+
+    /**
+     * Registra uma operação de IA com auditoria, duração, estado e payloads.
+     *
+     * O callback recebe o provedor e o prompt já renderizado.
+     */
+    public function execute(
+        string $feature,
+        string $templateKey,
+        array $variables,
+        Closure $callback,
+        ?string $providerSlug = null
+    ): array {
+        $template = AiPromptTemplate::query()
+            ->where('key', $templateKey)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        $provider = $this->resolveProvider($providerSlug);
+        $prompt = $this->render($template->user_template, $variables);
+
+        $execution = AiExecution::query()->create([
+            'user_id' => auth()->id(),
+            'provider_id' => $provider?->id,
+            'prompt_template_id' => $template->id,
+            'feature' => $feature,
+            'status' => 'running',
+            'input_hash' => hash('sha256', json_encode($variables, JSON_UNESCAPED_UNICODE)),
+            'input_payload' => [
+                'variables' => $this->redact($variables),
+                'prompt_version' => $template->version,
+            ],
+            'started_at' => now(),
+        ]);
+
+        $started = hrtime(true);
+
+        try {
+            $result = $callback($provider, [
+                'system' => $template->system_prompt,
+                'user' => $prompt,
+                'schema' => $template->output_schema,
+            ]);
+
+            if ($provider) $this->health->success($provider);
+            $duration = (int) round((hrtime(true) - $started) / 1_000_000);
+
+            $usage = is_array($result) ? ($result['usage'] ?? []) : [];
+            $inputTokens = (int) ($usage['input_tokens'] ?? 0);
+            $outputTokens = (int) ($usage['output_tokens'] ?? 0);
+            $costMicros = $this->cost->micros($provider, $inputTokens, $outputTokens);
+            $execution->update([
+                'status' => 'completed',
+                'input_tokens' => $inputTokens, 'output_tokens' => $outputTokens,
+                'total_tokens' => $inputTokens + $outputTokens,
+                'estimated_cost_micros' => $costMicros,
+                'estimated_cost' => $this->cost->decimal($costMicros),
+                'model' => $provider?->model,
+                'output_payload' => is_array($result) ? $result : ['text' => (string) $result],
+                'duration_ms' => $duration,
+                'finished_at' => now(),
+            ]);
+
+            $this->audit->record($execution->fresh(), 'ai.execution.completed', $variables);
+
+            return [
+                'execution_id' => $execution->id,
+                'provider' => $provider?->slug,
+                'result' => $result,
+            ];
+        } catch (Throwable $exception) {
+            if ($provider) $this->health->failure($provider, $exception->getMessage());
+            $duration = (int) round((hrtime(true) - $started) / 1_000_000);
+
+            $execution->update([
+                'status' => 'failed',
+                'duration_ms' => $duration,
+                'error_message' => Str::limit($exception->getMessage(), 5000, ''),
+                'finished_at' => now(),
+            ]);
+
+            $this->audit->record($execution->fresh(), 'ai.execution.failed', $variables, $exception->getMessage());
+            throw $exception;
+        }
+    }
+
+    public function render(string $template, array $variables): string
+    {
+        return preg_replace_callback('/\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/', function (array $matches) use ($variables): string {
+            $value = data_get($variables, $matches[1], '');
+
+            return is_scalar($value) ? (string) $value : json_encode($value, JSON_UNESCAPED_UNICODE);
+        }, $template) ?? $template;
+    }
+
+    private function resolveProvider(?string $slug): ?AiProvider
+    {
+        $providers = AiProvider::query()->where('is_enabled', true)->when($slug, fn ($q) => $q->where('slug', $slug))->orderBy('priority')->orderBy('id')->get();
+        $provider = $providers->first(fn (AiProvider $candidate) => $this->quota->available($candidate));
+        if (! $provider && $slug) {
+            $requested = AiProvider::query()->where('slug', $slug)->firstOrFail();
+            if ($requested->fallback_enabled) $provider = AiProvider::query()->where('is_enabled', true)->orderBy('priority')->get()->first(fn (AiProvider $candidate) => $this->quota->available($candidate));
+            if (! $provider) $this->quota->assertAvailable($requested);
+        }
+        return $provider;
+    }
+
+    private function redact(array $payload): array
+    {
+        return collect($payload)->mapWithKeys(function ($value, $key): array {
+            $sensitive = Str::contains(Str::lower((string) $key), [
+                'key', 'token', 'secret', 'password', 'credential',
+            ]);
+
+            return [$key => $sensitive ? '[REDACTED]' : $value];
+        })->all();
+    }
+}

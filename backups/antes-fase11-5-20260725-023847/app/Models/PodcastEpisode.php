@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;use Illuminate\Database\Eloquent\Relations\BelongsTo;use Illuminate\Support\Str;
+class PodcastEpisode extends Model{protected $fillable=['podcast_series_id','title','slug','description','audio_path','audio_mime','audio_bytes','duration_seconds','episode_number','is_published','published_at'];protected function casts():array{return['is_published'=>'boolean','published_at'=>'datetime'];}public function series():BelongsTo{return $this->belongsTo(PodcastSeries::class,'podcast_series_id');}public function audioUrl():string{return Str::startsWith($this->audio_path,['http://','https://'])?$this->audio_path:asset('storage/'.$this->audio_path);}}

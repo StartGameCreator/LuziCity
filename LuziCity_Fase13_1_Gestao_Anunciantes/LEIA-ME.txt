@@ -1,0 +1,9 @@
+LUZICITY — FASE 13.1 — GESTÃO DE ANUNCIANTES
+
+1. Extraia o ZIP.
+2. Execute INSTALAR-FASE13-1.bat.
+3. O instalador usa D:\Skill\LuziCity e cria backup automático.
+4. Acesse: http://127.0.0.1:9001/admin/comercial/anunciantes
+
+A implementação aproveita advertiser_profiles já existente, sem duplicar o cadastro-base.
+Documentos são armazenados no disco privado configurado pelo Laravel.

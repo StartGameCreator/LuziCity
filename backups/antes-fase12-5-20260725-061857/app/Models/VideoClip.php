@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;use Illuminate\Database\Eloquent\Relations\BelongsTo;
+class VideoClip extends Model{protected $fillable=['video_id','title','status','aspect_ratio','starts_at_ms','ends_at_ms','caption_text','subtitle_path','output_path','error_message','requested_by','reviewed_by','rendered_at','reviewed_at'];protected function casts():array{return['rendered_at'=>'datetime','reviewed_at'=>'datetime'];}public function video():BelongsTo{return $this->belongsTo(Video::class);}public function requester():BelongsTo{return $this->belongsTo(User::class,'requested_by');}}

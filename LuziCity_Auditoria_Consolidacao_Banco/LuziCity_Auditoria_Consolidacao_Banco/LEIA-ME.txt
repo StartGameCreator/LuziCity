@@ -1,0 +1,9 @@
+LuziCity — Auditoria e Consolidação do Banco
+
+1. Extraia este ZIP.
+2. Feche o servidor Laravel antes da instalação.
+3. Execute INSTALAR-AUDITORIA-CONSOLIDACAO-BANCO.bat.
+4. O instalador cria backup e executa a migration.
+5. Depois, use: php artisan luzicity:database-audit
+
+O patch não apaga o banco nem altera o arquivo .env.

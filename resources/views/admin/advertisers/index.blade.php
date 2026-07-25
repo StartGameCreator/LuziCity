@@ -1,0 +1,10 @@
+@extends('layouts.app')
+@section('title','Gestão de Anunciantes')
+@section('content')
+<section class="content-band"><p class="eyebrow">Fase 13.1 · Comercial</p><h1>Gestão de Anunciantes</h1><p>Empresas, contatos, contratos, documentos e histórico comercial.</p><a class="primary-action" href="{{ route('admin.advertisers.create') }}">Novo anunciante</a></section>
+<section class="category-admin-list">
+@foreach([['Total',$metrics['total']],['Ativos',$metrics['active']],['Em negociação',$metrics['prospects']],['Vencem em 30 dias',$metrics['expiring']],['Receita contratada','R$ '.number_format($metrics['contracted'],2,',','.')],['Receita prevista','R$ '.number_format($metrics['expected'],2,',','.')]] as [$label,$value])<article class="settings-panel"><small>{{ $label }}</small><h2>{{ $value }}</h2></article>@endforeach
+</section>
+<section class="settings-panel"><form method="get" class="admin-form"><label>Pesquisar<input name="q" value="{{ request('q') }}" placeholder="Empresa, CNPJ ou e-mail"></label><label>Status<select name="status"><option value="">Todos</option>@foreach(['prospect'=>'Prospect','contact'=>'Primeiro contato','negotiation'=>'Negociação','proposal'=>'Proposta enviada','contracted'=>'Contrato assinado','active'=>'Cliente ativo','inactive'=>'Inativo','cancelled'=>'Cancelado'] as $k=>$v)<option value="{{ $k }}" @selected(request('status')===$k)>{{ $v }}</option>@endforeach</select></label><button class="secondary-action">Filtrar</button></form></section>
+<section class="category-admin-list">@forelse($advertisers as $a)<article class="settings-panel"><p class="eyebrow">{{ $a->commercial_status }}</p><h2><a href="{{ route('admin.advertisers.show',$a) }}">{{ $a->trade_name ?: $a->legal_name ?: $a->company_name }}</a></h2><p>{{ $a->document_number ?: 'Documento não informado' }} · {{ $a->segment ?: 'Segmento não informado' }}</p><p>{{ $a->contacts_count }} contatos · {{ $a->documents_count }} documentos</p><a class="secondary-action" href="{{ route('admin.advertisers.edit',$a) }}">Editar</a></article>@empty<p>Nenhum anunciante cadastrado.</p>@endforelse</section>{{ $advertisers->links() }}
+@endsection

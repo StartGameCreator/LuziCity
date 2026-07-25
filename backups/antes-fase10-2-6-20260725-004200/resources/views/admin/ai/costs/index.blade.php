@@ -1,0 +1,8 @@
+@extends('layouts.app')
+@section('title','Custos da IA')
+@section('content')
+<section class="admin-page"><div class="section-heading"><div><span class="eyebrow">Central Editorial IA</span><h1>Custos e consumo</h1></div><a href="{{ route('admin.ai.logs.index') }}">Ver logs</a></div>
+<form class="admin-card" method="get" style="padding:1rem;display:flex;gap:.7rem"><label>De <input type="date" name="from" value="{{ $from->format('Y-m-d') }}"></label><label>Até <input type="date" name="to" value="{{ $to->format('Y-m-d') }}"></label><button>Filtrar</button></form>
+<div class="ai-kpis"><article class="admin-card"><b>Execuções</b><strong>{{ $summary->total }}</strong></article><article class="admin-card"><b>Tokens</b><strong>{{ number_format($summary->tokens,0,',','.') }}</strong></article><article class="admin-card"><b>Custo estimado</b><strong>R$ {{ number_format($summary->cost_micros/1000000,6,',','.') }}</strong></article><article class="admin-card"><b>Taxa de erro</b><strong>{{ $summary->total ? number_format($summary->failures*100/$summary->total,1,',','.') : 0 }}%</strong></article></div>
+@foreach(['Recurso'=>$byFeature,'Provedor'=>$byProvider,'Usuário'=>$byUser] as $title=>$rows)<section class="admin-card" style="padding:1rem;margin-top:1rem"><h2>Por {{ strtolower($title) }}</h2><table class="admin-table"><tr><th>{{ $title }}</th><th>Execuções</th><th>Tokens</th><th>Custo</th></tr>@forelse($rows as $row)<tr><td>{{ $row->label ?? 'Sistema' }}</td><td>{{ $row->executions }}</td><td>{{ $row->tokens }}</td><td>R$ {{ number_format($row->cost_micros/1000000,6,',','.') }}</td></tr>@empty<tr><td colspan="4">Sem dados.</td></tr>@endforelse</table></section>@endforeach</section>
+@endsection

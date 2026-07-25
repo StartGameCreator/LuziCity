@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;use Illuminate\Database\Eloquent\Relations\BelongsTo;use Illuminate\Database\Eloquent\Relations\HasMany;
+class VideoSeries extends Model{protected $table='video_series';protected $fillable=['video_category_id','title','slug','description','thumbnail_path','is_published'];protected function casts():array{return['is_published'=>'boolean'];}public function category():BelongsTo{return $this->belongsTo(VideoCategory::class,'video_category_id');}public function videos():HasMany{return $this->hasMany(Video::class)->orderBy('episode_number');}}

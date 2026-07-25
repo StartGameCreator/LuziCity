@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;use Illuminate\Database\Eloquent\Relations\BelongsTo;
+class VideoScript extends Model{protected $fillable=['news_article_id','title','status','provider','model','target_duration_seconds','estimated_duration_seconds','scenes','teleprompter_text','editorial_notes','created_by','reviewed_by','reviewed_at'];protected function casts():array{return['scenes'=>'array','reviewed_at'=>'datetime'];}public function article():BelongsTo{return $this->belongsTo(NewsArticle::class,'news_article_id');}public function creator():BelongsTo{return $this->belongsTo(User::class,'created_by');}public function reviewer():BelongsTo{return $this->belongsTo(User::class,'reviewed_by');}}

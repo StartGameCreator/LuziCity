@@ -1,0 +1,5 @@
+<?php
+namespace Tests\Feature;use App\Models\RadioHost;use App\Models\RadioProgram;use App\Models\RadioScheduleSlot;use App\Models\RadioStation;use App\Services\RadioOnAirService;use Carbon\Carbon;use Illuminate\Foundation\Testing\RefreshDatabase;use Tests\TestCase;
+class RadioStructureTest extends TestCase{use RefreshDatabase;
+ public function test_schedule_resolves_current_on_air_program():void{$station=RadioStation::create(['name'=>'Luzicity','is_active'=>true]);$host=RadioHost::create(['name'=>'Ana','is_active'=>true]);$program=RadioProgram::create(['radio_station_id'=>$station->id,'radio_host_id'=>$host->id,'name'=>'Jornal da Cidade','is_active'=>true]);RadioScheduleSlot::create(['radio_program_id'=>$program->id,'day_of_week'=>1,'starts_at'=>'08:00','ends_at'=>'10:00','is_live'=>true,'is_active'=>true]);$slot=app(RadioOnAirService::class)->current($station,Carbon::parse('2026-07-27 09:00:00'));$this->assertSame('Jornal da Cidade',$slot->program->name);$this->assertSame('Ana',$slot->program->host->name);}
+}

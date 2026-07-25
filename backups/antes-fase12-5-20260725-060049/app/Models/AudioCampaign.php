@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;use Illuminate\Database\Eloquent\Relations\BelongsTo;use Illuminate\Database\Eloquent\Relations\HasMany;
+class AudioCampaign extends Model{protected $fillable=['audio_spot_id','name','status','starts_at','ends_at','daily_starts_at','daily_ends_at','weekdays','max_plays','priority'];protected function casts():array{return['starts_at'=>'datetime','ends_at'=>'datetime','weekdays'=>'array','max_plays'=>'integer','priority'=>'integer'];}public function spot():BelongsTo{return $this->belongsTo(AudioSpot::class,'audio_spot_id');}public function plays():HasMany{return $this->hasMany(AudioAdPlay::class);}}

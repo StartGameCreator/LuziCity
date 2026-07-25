@@ -1,0 +1,2 @@
+﻿database\migrations\2026_07_24_110000_add_performance_indexes_to_luzicity_tables.php
+tests\Feature\Database\PerformanceIndexesTest.php

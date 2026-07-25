@@ -1,0 +1,4 @@
+@extends('layouts.app',['title'=>'Podcasts - Luzicity'])
+@section('content')<section class="content-band"><p class="eyebrow">Áudio</p><h1>Podcasts Luzicity</h1><p>Programas e episódios para ouvir quando quiser.</p></section>
+@forelse($seriesList as $series)<section class="settings-panel">@if($series->cover_path)<img src="{{ asset('storage/'.$series->cover_path) }}" alt="Capa de {{ $series->title }}" style="max-width:240px">@endif<h2>{{ $series->title }}</h2><p>{{ $series->description }}</p><a href="{{ route('podcasts.feed',$series) }}">Assinar RSS</a>@foreach($series->publishedEpisodes as $episode)<article><h3>{{ $episode->title }}</h3><p>{{ $episode->description }}</p><audio controls preload="none" src="{{ $episode->audioUrl() }}"></audio></article>@endforeach</section>@empty<section class="settings-panel"><p>Nenhum podcast publicado.</p></section>@endforelse
+@endsection

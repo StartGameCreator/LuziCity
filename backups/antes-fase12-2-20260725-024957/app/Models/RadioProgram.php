@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;use Illuminate\Database\Eloquent\Relations\BelongsTo;use Illuminate\Database\Eloquent\Relations\HasMany;
+class RadioProgram extends Model{protected $fillable=['radio_station_id','radio_host_id','name','description','cover_path','is_active'];protected function casts():array{return['is_active'=>'boolean'];}public function station():BelongsTo{return $this->belongsTo(RadioStation::class,'radio_station_id');}public function host():BelongsTo{return $this->belongsTo(RadioHost::class,'radio_host_id');}public function slots():HasMany{return $this->hasMany(RadioScheduleSlot::class);}}

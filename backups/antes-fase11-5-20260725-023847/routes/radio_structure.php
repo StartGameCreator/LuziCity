@@ -1,0 +1,3 @@
+<?php
+use App\Http\Controllers\AdminRadioStructureController;use Illuminate\Support\Facades\Route;
+Route::prefix('admin/radio/estrutura')->name('admin.radio-structure.')->middleware(['auth','roles:Super Admin,Admin'])->group(function(){Route::get('/',[AdminRadioStructureController::class,'index'])->name('index');Route::put('/emissora',[AdminRadioStructureController::class,'station'])->name('station');Route::post('/locutores',[AdminRadioStructureController::class,'host'])->name('host');Route::post('/programas',[AdminRadioStructureController::class,'program'])->name('program');Route::post('/grade',[AdminRadioStructureController::class,'slot'])->name('slot');});

@@ -1,0 +1,10 @@
+<?php
+namespace App\Http\Controllers;use App\Models\RadioHost;use App\Models\RadioProgram;use App\Models\RadioScheduleSlot;use App\Models\RadioStation;use Illuminate\Http\RedirectResponse;use Illuminate\Http\Request;use Illuminate\View\View;
+class AdminRadioStructureController extends Controller{
+ public function index():View{$this->guard();return view('admin.radio-structure.index',['station'=>RadioStation::first(),'hosts'=>RadioHost::orderBy('name')->get(),'programs'=>RadioProgram::with(['host','slots'])->orderBy('name')->get()]);}
+ public function station(Request $r):RedirectResponse{$this->guard();$d=$r->validate(['name'=>'required|string|max:120','call_sign'=>'nullable|string|max:60','description'=>'nullable|string|max:1000','stream_url'=>'nullable|url|max:2048','on_air_label'=>'nullable|string|max:120']);RadioStation::updateOrCreate(['id'=>RadioStation::query()->value('id')],$d+['is_active'=>true,'force_on_air'=>$r->boolean('force_on_air')]);return back()->with('status','Emissora atualizada.');}
+ public function host(Request $r):RedirectResponse{$this->guard();RadioHost::create($r->validate(['name'=>'required|string|max:120','bio'=>'nullable|string|max:2000'])+['is_active'=>true]);return back()->with('status','Locutor cadastrado.');}
+ public function program(Request $r):RedirectResponse{$this->guard();$station=RadioStation::firstOrFail();RadioProgram::create($r->validate(['name'=>'required|string|max:120','description'=>'nullable|string|max:2000','radio_host_id'=>'nullable|exists:radio_hosts,id'])+['radio_station_id'=>$station->id,'is_active'=>true]);return back()->with('status','Programa cadastrado.');}
+ public function slot(Request $r):RedirectResponse{$this->guard();RadioScheduleSlot::create($r->validate(['radio_program_id'=>'required|exists:radio_programs,id','day_of_week'=>'required|integer|min:0|max:6','starts_at'=>'required|date_format:H:i','ends_at'=>'required|date_format:H:i|after:starts_at'])+['is_live'=>$r->boolean('is_live'),'is_active'=>true]);return back()->with('status','Horário adicionado à grade.');}
+ private function guard():void{abort_unless(auth()->user()?->hasAnyRole(['Super Admin','Admin']),403);}
+}

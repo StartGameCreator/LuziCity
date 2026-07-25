@@ -1,0 +1,5 @@
+<?php
+namespace Tests\Feature;use App\Models\AudioCampaign;use App\Models\AudioSpot;use App\Services\AudioAdvertisingService;use Carbon\Carbon;use Illuminate\Foundation\Testing\RefreshDatabase;use Tests\TestCase;
+class AudioAdvertisingTest extends TestCase{use RefreshDatabase;
+ public function test_campaign_respects_schedule_and_records_play():void{$spot=AudioSpot::create(['name'=>'Spot','audio_path'=>'https://example.com/ad.mp3','is_active'=>true]);$campaign=AudioCampaign::create(['audio_spot_id'=>$spot->id,'name'=>'Campanha','status'=>'active','starts_at'=>'2026-07-01','ends_at'=>'2026-07-31 23:59:59','daily_starts_at'=>'08:00','daily_ends_at'=>'18:00','weekdays'=>[1],'priority'=>10]);$this->assertSame($campaign->id,app(AudioAdvertisingService::class)->current(Carbon::parse('2026-07-27 10:00'))->id);$this->assertNull(app(AudioAdvertisingService::class)->current(Carbon::parse('2026-07-27 20:00')));$this->postJson(route('audio-ads.play',$campaign),['completed'=>true,'listened_seconds'=>30])->assertOk();$this->assertDatabaseHas('audio_ad_plays',['audio_campaign_id'=>$campaign->id,'completed'=>true]);}
+}

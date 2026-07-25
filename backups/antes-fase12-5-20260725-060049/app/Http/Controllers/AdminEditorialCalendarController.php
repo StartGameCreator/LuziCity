@@ -1,0 +1,8 @@
+<?php
+namespace App\Http\Controllers;
+use App\Models\EditorialCalendarEvent;use App\Models\User;use App\Services\EditorialCalendarService;use Carbon\Carbon;use Illuminate\Http\RedirectResponse;use Illuminate\Http\Request;use Illuminate\Validation\Rule;use Illuminate\View\View;
+class AdminEditorialCalendarController extends Controller{
+ public function index(Request $r,EditorialCalendarService $calendar):View{$view=in_array($r->input('view'),['month','week','day'],true)?$r->input('view'):'month';$date=Carbon::parse($r->input('date',now()->toDateString()));[$from,$to]=$calendar->range($view,$date);return view('admin.editorial-calendar.index',['view'=>$view,'date'=>$date,'from'=>$from,'to'=>$to,'items'=>$calendar->items($from,$to),'users'=>User::active()->orderBy('name')->get()]);}
+ public function store(Request $r):RedirectResponse{$d=$r->validate(['title'=>['required','string','max:180'],'description'=>['nullable','string','max:3000'],'event_type'=>['required',Rule::in(['local_event','holiday'])],'starts_at'=>['required','date'],'ends_at'=>['nullable','date','after_or_equal:starts_at'],'responsible_id'=>['nullable','exists:users,id']]);EditorialCalendarEvent::create($d+['created_by'=>$r->user()->id,'status'=>'active','is_ai_suggestion'=>false]);return back()->with('status','Evento adicionado ao calendário.');}
+ public function suggest(Request $r):RedirectResponse{$d=$r->validate(['title'=>['required','string','max:180'],'description'=>['nullable','string','max:3000'],'starts_at'=>['required','date']]);EditorialCalendarEvent::create($d+['event_type'=>'suggestion','status'=>'suggested','created_by'=>$r->user()->id,'is_ai_suggestion'=>true]);return back()->with('status','Sugestão registrada; nenhuma pauta foi criada automaticamente.');}
+}

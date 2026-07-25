@@ -17,10 +17,23 @@
     $metaImage = data_get($metaData, 'image', $defaultShareImage);
     $metaType = data_get($metaData, 'type', 'website');
     $metaUrl = data_get($metaData, 'url', url()->current());
+    $metaRobots = data_get($metaData, 'robots', 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
+    $metaPublishedTime = data_get($metaData, 'published_time');
+    $metaModifiedTime = data_get($metaData, 'modified_time');
+    $jsonLd = data_get($metaData, 'json_ld');
     $metaImageUrl = filled($metaImage) ? (\Illuminate\Support\Str::startsWith($metaImage, ['http://', 'https://']) ? $metaImage : asset($metaImage)) : null;
     $faviconUrl = \Illuminate\Support\Str::startsWith($siteFavicon, ['http://', 'https://']) ? $siteFavicon : asset($siteFavicon);
     $themeBackground = trim((string) config('luzicity.theme.background_image'));
     $themeOpacity = trim((string) config('luzicity.theme.background_opacity', '0.34'));
+    $firebaseConfig = [
+        'apiKey' => config('services.firebase.api_key'),
+        'authDomain' => config('services.firebase.auth_domain'),
+        'projectId' => config('services.firebase.project_id'),
+        'storageBucket' => config('services.firebase.storage_bucket'),
+        'messagingSenderId' => config('services.firebase.messaging_sender_id'),
+        'appId' => config('services.firebase.app_id'),
+        'vapidKey' => config('services.firebase.vapid_key'),
+    ];
 @endphp
 <!doctype html>
 <html lang="pt-BR">
@@ -28,18 +41,23 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="luzicity-firebase-config" content='@json($firebaseConfig)'>
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#f3f6fb" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)">
     <meta name="application-name" content="{{ $siteName }}">
     <meta name="apple-mobile-web-app-title" content="{{ $siteName }}">
     <meta name="description" content="{{ $metaDescription }}">
+    <meta name="robots" content="{{ $metaRobots }}">
+    <link rel="canonical" href="{{ $metaUrl }}">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:site_name" content="{{ $siteName }}">
     <meta property="og:type" content="{{ $metaType }}">
     <meta property="og:title" content="{{ $metaTitle }}">
     <meta property="og:description" content="{{ $metaDescription }}">
     <meta property="og:url" content="{{ $metaUrl }}">
+    @if($metaPublishedTime)<meta property="article:published_time" content="{{ $metaPublishedTime }}">@endif
+    @if($metaModifiedTime)<meta property="article:modified_time" content="{{ $metaModifiedTime }}">@endif
     @if($metaImageUrl)
         <meta property="og:image" content="{{ $metaImageUrl }}">
         <meta property="og:image:secure_url" content="{{ $metaImageUrl }}">
@@ -53,6 +71,11 @@
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
     <link rel="icon" href="{{ $faviconUrl }}">
     <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="{{ route('sitemap') }}">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    @if($jsonLd)
+        <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) !!}</script>
+    @endif
     @if($shouldShowGoogleAds && filled($googleAdsClient))
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ $googleAdsClient }}" crossorigin="anonymous"></script>
     @endif
@@ -109,14 +132,17 @@
                     <a href="{{ route('dashboard') }}"><x-app-icon name="dashboard" /> Painel</a>
                 @endif
                 @if(auth()->user()->hasAnyRole(['Super Admin', 'Admin']))
+                    <a href="{{ route('admin.advertisers.index') }}"><x-app-icon name="user" /> Anunciantes</a>
                     <a href="{{ route('admin.system-health.index') }}"><x-app-icon name="dashboard" /> Saúde</a>
                     <a href="{{ route('admin.users.index') }}"><x-app-icon name="user" /> Usuarios</a>
                     <a href="{{ route('admin.social-login.edit') }}"><x-app-icon name="login" /> Login Social</a>
                     <a href="{{ route('admin.social-links.edit') }}"><x-app-icon name="store" /> Links do Site</a>
+                    <a href="{{ route('admin.push-notifications.index') }}"><x-app-icon name="news" /> Push</a>
                     <a href="{{ route('admin.tracking-pixels.edit') }}"><x-app-icon name="dashboard" /> Pixels</a>
                     <a href="{{ route('admin.company-info.edit') }}"><x-app-icon name="info" /> Empresa</a>
                     <a href="{{ route('admin.site-content.edit') }}"><x-app-icon name="edit" /> Conteúdo</a>
-                    <a href="{{ route('admin.ai-settings.edit') }}"><x-app-icon name="dashboard" /> IA</a>
+                    <a href="{{ route('admin.ai-settings.edit') }}"><x-app-icon name="dashboard" /> IA Config</a>
+                    <a href="{{ route('admin.ai.dashboard') }}"><x-app-icon name="dashboard" /> Central Editorial IA</a>
                     <a href="{{ route('admin.categories.index') }}"><x-app-icon name="grid" /> Editorias</a>
                     <a href="{{ route('admin.tags.index') }}"><x-app-icon name="grid" /> Tags</a>
                     <a href="{{ route('admin.rss-feeds.index') }}"><x-app-icon name="rss" /> RSS</a>
@@ -128,6 +154,7 @@
                 @endif
                 @if(auth()->user()->hasAnyRole(['Super Admin', 'Admin', 'Jornalista', 'Colunista']))
                     <a href="{{ route('admin.news.index') }}"><x-app-icon name="news" /> Notícias</a>
+                    <a href="{{ route('admin.editorial-room.dashboard') }}"><x-app-icon name="edit" /> Sala de Redação</a>
                 @endif
                 <form method="post" action="{{ route('logout') }}">
                     @csrf
@@ -163,6 +190,10 @@
             <button class="install-trigger" type="button" aria-describedby="install-help" data-install-trigger>
                 <x-app-icon name="install" />
                 <span data-install-label>Instale o App</span>
+            </button>
+            <button class="push-trigger" type="button" data-push-trigger>
+                <x-app-icon name="news" />
+                <span data-push-label>Ativar avisos</span>
             </button>
             <button class="social-links-trigger" type="button" aria-expanded="false" aria-controls="social-links-menu" data-social-links-trigger>
                 <x-app-icon name="share" />
@@ -296,7 +327,7 @@
         </div>
 
         <div class="city-menu-list">
-            @foreach(config('luzicity.city_locations') as $city)
+            @foreach((config('luzicity.city_locations') ?? []) as $city)
                 <a href="{{ route('cities.show', $city['slug']) }}">
                     <span>{{ $city['name'] }}</span>
                     <small>{{ $city['state'] }}</small>
@@ -341,13 +372,13 @@
         <span data-install-message>Quando o navegador liberar, este botão instala o site como aplicativo.</span>
     </div>
 
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('{{ asset('service-worker.js') }}').catch(() => {});
-            });
-        }
+    <div class="pwa-update-banner" data-pwa-update-banner hidden>
+        <span>Uma nova versão da Luzicity está disponível.</span>
+        <button type="button" data-pwa-update-apply>Atualizar agora</button>
+        <button type="button" data-pwa-update-dismiss aria-label="Fechar">×</button>
+    </div>
 
+    <script>
         (() => {
             const trigger = document.querySelector('[data-start-login-trigger]');
             const menu = document.querySelector('[data-start-login-menu]');
@@ -435,75 +466,6 @@
             });
 
             updateButton();
-        })();
-
-        (() => {
-            const button = document.querySelector('[data-install-trigger]');
-            const buttonLabel = document.querySelector('[data-install-label]');
-            const toast = document.querySelector('[data-install-toast]');
-            const title = document.querySelector('[data-install-title]');
-            const message = document.querySelector('[data-install-message]');
-            let deferredPrompt = null;
-
-            if (!button || !buttonLabel || !toast || !title || !message) {
-                return;
-            }
-
-            const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-            const showToast = (nextTitle, nextMessage) => {
-                title.textContent = nextTitle;
-                message.textContent = nextMessage;
-                toast.hidden = false;
-                toast.classList.add('is-open');
-                window.clearTimeout(showToast.timer);
-                showToast.timer = window.setTimeout(() => {
-                    toast.classList.remove('is-open');
-                    window.setTimeout(() => {
-                        toast.hidden = true;
-                    }, 180);
-                }, 5200);
-            };
-
-            const markInstalled = () => {
-                button.dataset.installed = 'true';
-                button.setAttribute('aria-label', 'Luzicity instalado');
-                buttonLabel.textContent = 'Instale o App';
-            };
-
-            if (isStandalone()) {
-                markInstalled();
-                return;
-            }
-
-            window.addEventListener('beforeinstallprompt', (event) => {
-                event.preventDefault();
-                deferredPrompt = event;
-                button.dataset.ready = 'true';
-            });
-
-            window.addEventListener('appinstalled', () => {
-                deferredPrompt = null;
-                markInstalled();
-                showToast('Luzicity instalado', 'O atalho foi criado no dispositivo.');
-            });
-
-            button.addEventListener('click', async () => {
-                if (isStandalone()) {
-                    markInstalled();
-                    showToast('Já instalado', 'A Luzicity já está aberta como aplicativo.');
-                    return;
-                }
-
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    await deferredPrompt.userChoice.catch(() => null);
-                    deferredPrompt = null;
-                    return;
-                }
-
-                showToast('Instalação manual', 'No celular, use o menu do navegador e escolha “Adicionar à tela inicial”. No computador, procure o ícone de instalação na barra do navegador.');
-            });
         })();
 
         (() => {

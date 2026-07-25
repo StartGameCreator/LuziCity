@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;use Illuminate\Database\Eloquent\Relations\BelongsTo;
+class NewsNarration extends Model{protected $fillable=['news_article_id','audio_voice_profile_id','status','input_text','character_count','audio_path','audio_bytes','estimated_cost','actual_cost','error_message','requested_by','reviewed_by','generated_at','reviewed_at'];protected function casts():array{return['estimated_cost'=>'float','actual_cost'=>'float','generated_at'=>'datetime','reviewed_at'=>'datetime'];}public function article():BelongsTo{return $this->belongsTo(NewsArticle::class,'news_article_id');}public function voiceProfile():BelongsTo{return $this->belongsTo(AudioVoiceProfile::class,'audio_voice_profile_id');}}

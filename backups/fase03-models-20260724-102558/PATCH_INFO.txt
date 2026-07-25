@@ -1,0 +1,4 @@
+﻿Fase: 03 - Arquitetura de Models
+Data: 2026-07-24 10:25:59
+Projeto: D:\Skill\LuziCity
+Pacote: D:\Skill\LuziCity\LuziCity_Fase03_Arquitetura_Models\LuziCity_Fase03_Arquitetura_Models

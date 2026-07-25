@@ -1,0 +1,4 @@
+﻿Fase: 05 - Banco de Dados
+Data: 2026-07-24 11:09:13
+Projeto: D:\Skill\LuziCity
+Pacote: D:\Skill\LuziCity\LuziCity_Fase05_BancoDeDados\LuziCity_Fase05_BancoDeDados

@@ -1,0 +1,3 @@
+<?php
+namespace App\Models; use Illuminate\Database\Eloquent\Model;use Illuminate\Database\Eloquent\Relations\BelongsTo;
+class EditorialPitchSource extends Model{protected $fillable=['editorial_pitch_id','title','url','notes','source_type','document_path','metadata','excerpt','summary','reliability','fetched_at'];protected function casts():array{return['metadata'=>'array','fetched_at'=>'datetime'];}public function pitch():BelongsTo{return $this->belongsTo(EditorialPitch::class,'editorial_pitch_id');}public function claims(){return $this->hasMany(EditorialSourceClaim::class,'editorial_pitch_source_id');}}

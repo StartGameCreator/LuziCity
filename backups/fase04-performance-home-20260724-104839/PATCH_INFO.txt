@@ -1,0 +1,4 @@
+﻿Fase: 04 - Performance da pÃ¡gina inicial
+Data: 2026-07-24 10:48:40
+Projeto: D:\Skill\LuziCity
+Pacote: D:\Skill\LuziCity\LuziCity_Fase04_Performance_Home\LuziCity_Fase04_Performance_Home

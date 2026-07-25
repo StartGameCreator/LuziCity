@@ -1,0 +1,3 @@
+<?php
+use App\Http\Controllers\AdminEditorialPitchController;use Illuminate\Support\Facades\Route;
+Route::prefix('admin/redacao/pautas')->name('admin.editorial-pitches.')->middleware(['auth','roles:Super Admin,Admin,Jornalista,Colunista'])->group(function(){Route::get('/',[AdminEditorialPitchController::class,'index'])->name('index');Route::get('/nova',[AdminEditorialPitchController::class,'create'])->name('create');Route::post('/',[AdminEditorialPitchController::class,'store'])->name('store');Route::get('/{pitch}/editar',[AdminEditorialPitchController::class,'edit'])->name('edit');Route::put('/{pitch}',[AdminEditorialPitchController::class,'update'])->name('update');Route::patch('/{pitch}/mover',[AdminEditorialPitchController::class,'move'])->name('move');});

@@ -1,0 +1,9 @@
+<?php
+namespace App\Http\Controllers;
+use App\Models\AiProvider;use App\Services\AI\AiProviderHealthService;use App\Services\AI\AiProviderQuotaService;use Illuminate\Http\RedirectResponse;use Illuminate\Http\Request;use Illuminate\View\View;
+class AdminAiProviderController extends Controller{
+ public function index(AiProviderQuotaService $quota):View{$providers=AiProvider::withCount(['executions as today_count'=>fn($q)=>$q->whereDate('created_at',today()),'executions as month_count'=>fn($q)=>$q->whereBetween('created_at',[now()->startOfMonth(),now()->endOfMonth()])])->orderBy('priority')->get();return view('admin.ai.providers.index',compact('providers'));}
+ public function edit(AiProvider $provider):View{return view('admin.ai.providers.form',compact('provider'));}
+ public function update(Request $r,AiProvider $provider):RedirectResponse{$d=$r->validate(['name'=>['required','string','max:120'],'model'=>['nullable','string','max:160'],'endpoint'=>['nullable','url','max:2048'],'priority'=>['required','integer','min:1','max:999'],'timeout_seconds'=>['required','integer','min:5','max:300'],'retry_attempts'=>['required','integer','min:0','max:10'],'daily_request_limit'=>['required','integer','min:0'],'monthly_request_limit'=>['required','integer','min:0'],'input_cost_per_million'=>['required','numeric','min:0'],'output_cost_per_million'=>['required','numeric','min:0']]);$provider->update($d+['is_enabled'=>$r->boolean('is_enabled'),'fallback_enabled'=>$r->boolean('fallback_enabled')]);return redirect()->route('admin.ai.providers.index')->with('status','Provedor atualizado sem alterar credenciais.');}
+ public function test(AiProvider $provider,AiProviderHealthService $health):RedirectResponse{$result=$health->check($provider);return back()->with('provider_test',$result+['name'=>$provider->name]);}
+}

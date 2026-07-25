@@ -1,0 +1,5 @@
+<?php
+namespace Tests\Feature;use App\Models\TvBroadcast;use App\Models\TvChannel;use App\Services\TvBroadcastService;use Carbon\Carbon;use Illuminate\Foundation\Testing\RefreshDatabase;use Tests\TestCase;
+class TvChannelTest extends TestCase{use RefreshDatabase;
+ public function test_scheduled_live_is_public_and_rtmp_key_is_hidden():void{$channel=TvChannel::create(['name'=>'TV Luzicity','slug'=>'tv-luzicity','is_active'=>true]);$broadcast=TvBroadcast::create(['tv_channel_id'=>$channel->id,'title'=>'Jornal ao vivo','provider'=>'youtube','playback_url'=>'https://youtube.com/live/abc123XYZ','rtmp_key'=>'segredo','starts_at'=>'2026-07-25 10:00','ends_at'=>'2026-07-25 12:00','status'=>'live']);$this->assertSame($broadcast->id,app(TvBroadcastService::class)->liveFor($channel,Carbon::parse('2026-07-25 11:00'))->id);$this->assertArrayNotHasKey('rtmp_key',$broadcast->toArray());$this->travelTo(Carbon::parse('2026-07-25 11:00'));$this->get('/tv')->assertOk()->assertSee('Jornal ao vivo')->assertSee('youtube-nocookie.com/embed/abc123XYZ',false)->assertDontSee('segredo');}
+}

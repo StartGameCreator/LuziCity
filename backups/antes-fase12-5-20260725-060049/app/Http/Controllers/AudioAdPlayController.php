@@ -1,0 +1,3 @@
+<?php
+namespace App\Http\Controllers;use App\Models\AudioCampaign;use Illuminate\Http\JsonResponse;use Illuminate\Http\Request;
+class AudioAdPlayController extends Controller{public function store(Request $r,AudioCampaign $campaign):JsonResponse{$d=$r->validate(['completed'=>'nullable|boolean','listened_seconds'=>'nullable|integer|min:0|max:3600']);$campaign->plays()->create(['session_hash'=>hash('sha256',$r->session()->getId()),'completed'=>$r->boolean('completed'),'listened_seconds'=>$d['listened_seconds']??0,'user_agent_hash'=>hash('sha256',(string)$r->userAgent()),'played_at'=>now()]);return response()->json(['recorded'=>true]);}}

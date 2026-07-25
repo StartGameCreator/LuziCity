@@ -1,0 +1,8 @@
+<?php
+namespace App\Http\Controllers;use App\Models\TvBroadcast;use App\Models\TvChannel;use App\Services\Security\EmbedCodeSanitizer;use Illuminate\Http\RedirectResponse;use Illuminate\Http\Request;use Illuminate\Support\Str;use Illuminate\View\View;
+class AdminTvController extends Controller{
+ public function index():View{$this->guard();return view('admin.tv.index',['channels'=>TvChannel::with(['broadcasts'=>fn($q)=>$q->orderByDesc('starts_at')])->get()]);}
+ public function channel(Request $r):RedirectResponse{$this->guard();$d=$r->validate(['name'=>'required|string|max:140','description'=>'nullable|string|max:3000']);$d['slug']=$this->slug($d['name']);$d['is_active']=true;TvChannel::create($d);return back()->with('status','Canal criado.');}
+ public function broadcast(Request $r,TvChannel $channel):RedirectResponse{$this->guard();$d=$r->validate(['title'=>'required|string|max:180','description'=>'nullable|string|max:5000','provider'=>'required|in:youtube,vimeo,rtmp,hls,embed','playback_url'=>'nullable|url|max:2048','embed_code'=>'nullable|string|max:12000','rtmp_server'=>'nullable|string|max:2048','rtmp_key'=>'nullable|string|max:2048','starts_at'=>'nullable|date','ends_at'=>'nullable|date|after:starts_at','status'=>'required|in:scheduled,live,ended,cancelled']);$d['embed_code']=EmbedCodeSanitizer::sanitize($d['embed_code']??null);$d['force_live']=$r->boolean('force_live');$channel->broadcasts()->create($d);return back()->with('status','Transmissão programada.');}
+ private function slug(string $name):string{$base=Str::slug($name)?:'canal';$slug=$base;$i=2;while(TvChannel::where('slug',$slug)->exists())$slug=$base.'-'.$i++;return $slug;}private function guard():void{abort_unless(auth()->user()?->hasAnyRole(['Super Admin','Admin']),403);}
+}

@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;use Illuminate\Database\Eloquent\Relations\BelongsTo;use Illuminate\Database\Eloquent\Relations\HasMany;
+class AiAgentRun extends Model{protected $fillable=['editorial_pitch_id','ai_agent_id','requested_by','status','current_step'];public function pitch():BelongsTo{return $this->belongsTo(EditorialPitch::class,'editorial_pitch_id');}public function agent():BelongsTo{return $this->belongsTo(AiAgent::class,'ai_agent_id');}public function requester():BelongsTo{return $this->belongsTo(User::class,'requested_by');}public function steps():HasMany{return $this->hasMany(AiAgentStep::class)->orderBy('sequence');}}

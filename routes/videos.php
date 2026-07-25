@@ -1,0 +1,4 @@
+<?php
+use App\Http\Controllers\AdminVideoLibraryController;use App\Http\Controllers\VideoLibraryController;use Illuminate\Support\Facades\Route;
+Route::get('/videos',[VideoLibraryController::class,'index'])->name('videos.index');Route::get('/videos/{video}',[VideoLibraryController::class,'show'])->name('videos.show');
+Route::prefix('admin/videos')->name('admin.videos.')->middleware(['auth','roles:Super Admin,Admin'])->group(function(){Route::get('/',[AdminVideoLibraryController::class,'index'])->name('index');Route::post('/categorias',[AdminVideoLibraryController::class,'category'])->name('category');Route::post('/series',[AdminVideoLibraryController::class,'series'])->name('series');Route::post('/itens',[AdminVideoLibraryController::class,'video'])->name('video');Route::post('/playlists',[AdminVideoLibraryController::class,'playlist'])->name('playlist');});

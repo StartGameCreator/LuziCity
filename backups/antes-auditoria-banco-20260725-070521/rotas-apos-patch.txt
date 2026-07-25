@@ -1,0 +1,191 @@
+
+  GET|HEAD  / .................................................................................. home › HomeController
+  GET|HEAD  admin ............................................................. admin.index › AdminDashboardController
+  GET|HEAD  admin/agencia ........................ admin.agency-dashboard.index › AdminAgencyDashboardController@index
+  GET|HEAD  admin/agencia/aprovacao ................ admin.agency-approval.index › AdminAgencyApprovalController@index
+  POST      admin/agencia/aprovacao/item/{article} admin.agency-approval.article › AdminAgencyApprovalController@arti…
+  POST      admin/agencia/aprovacao/pre-pauta/{prePitch} admin.agency-approval.pre-pitch › AdminAgencyApprovalControl…
+  PUT       admin/agencia/fontes/{feed}/politica admin.agency-dashboard.policy › AdminAgencyDashboardController@policy
+  GET|HEAD  admin/agencia/pre-pautas .................. admin.rss-pre-pitches.index › AdminRssPrePitchController@index
+  POST      admin/agencia/pre-pautas/de-artigo/{article} admin.rss-pre-pitches.store › AdminRssPrePitchController@sto…
+  GET|HEAD  admin/audio/noticias .................... admin.news-narrations.index › AdminNewsNarrationController@index
+  POST      admin/audio/noticias/gerar .............. admin.news-narrations.store › AdminNewsNarrationController@store
+  POST      admin/audio/noticias/vozes .............. admin.news-narrations.voice › AdminNewsNarrationController@voice
+  PATCH     admin/audio/noticias/{narration}/revisao admin.news-narrations.review › AdminNewsNarrationController@revi…
+  GET|HEAD  admin/categories .................................. admin.categories.index › AdminCategoryController@index
+  POST      admin/categories .................................. admin.categories.store › AdminCategoryController@store
+  PUT       admin/categories/{category} ..................... admin.categories.update › AdminCategoryController@update
+  GET|HEAD  admin/classificados-veiculos ............... admin.vehicles.index › AdminVehicleClassifiedController@index
+  PUT       admin/classificados-veiculos/configuracao admin.vehicles.settings.update › AdminVehicleClassifiedControll…
+  POST      admin/classificados-veiculos/logos admin.vehicles.logos.upload › AdminVehicleClassifiedController@uploadB…
+  PUT       admin/classificados-veiculos/{vehicle} admin.vehicles.update › AdminVehicleClassifiedController@updateLis…
+  GET|HEAD  admin/company-info ............................. admin.company-info.edit › AdminCompanyInfoController@edit
+  PUT       admin/company-info ......................... admin.company-info.update › AdminCompanyInfoController@update
+  GET|HEAD  admin/configuracoes/ia ........................... admin.ai-settings.edit › AdminAiSettingsController@edit
+  PUT       admin/ia ..................................... admin.ai-settings.update › AdminAiSettingsController@update
+  GET|HEAD  admin/ia ................................................. admin.ai.dashboard › AdminAiDashboardController
+  GET|HEAD  admin/ia-editorial ........................... admin.ai-editorial.index › AdminAiEditorialController@index
+  PUT       admin/ia-editorial/prompts/{template} admin.ai-editorial.templates.update › AdminAiEditorialController@up…
+  PUT       admin/ia-editorial/provedores/{provider} admin.ai-editorial.providers.update › AdminAiEditorialController…
+  GET|HEAD  admin/ia/custos ............................................. admin.ai.costs.index › AdminAiCostController
+  GET|HEAD  admin/ia/dashboard ................................. admin.ai.dashboard.alias › AdminAiDashboardController
+  GET|HEAD  admin/ia/logs ........................................... admin.ai.logs.index › AdminAiLogController@index
+  GET|HEAD  admin/ia/logs/{execution} ................................. admin.ai.logs.show › AdminAiLogController@show
+  GET|HEAD  admin/ia/memoria .......................... admin.ai.memory.index › AdminAiEditorialMemoryController@index
+  POST      admin/ia/memoria/perfis ... admin.ai.memory.profiles.store › AdminAiEditorialMemoryController@storeProfile
+  GET|HEAD  admin/ia/memoria/perfis/{profile} ........... admin.ai.memory.edit › AdminAiEditorialMemoryController@edit
+  PUT       admin/ia/memoria/perfis/{profile} ....... admin.ai.memory.update › AdminAiEditorialMemoryController@update
+  POST      admin/ia/memoria/perfis/{profile}/regras admin.ai.memory.rules.store › AdminAiEditorialMemoryController@s…
+  POST      admin/ia/memoria/perfis/{profile}/termos admin.ai.memory.terms.store › AdminAiEditorialMemoryController@s…
+  PUT       admin/ia/memoria/regras/{rule} admin.ai.memory.rules.update › AdminAiEditorialMemoryController@updateRule
+  DELETE    admin/ia/memoria/regras/{rule} admin.ai.memory.rules.destroy › AdminAiEditorialMemoryController@destroyRu…
+  PUT       admin/ia/memoria/termos/{term} admin.ai.memory.terms.update › AdminAiEditorialMemoryController@updateTerm
+  DELETE    admin/ia/memoria/termos/{term} admin.ai.memory.terms.destroy › AdminAiEditorialMemoryController@destroyTe…
+  GET|HEAD  admin/ia/prompts .................................. admin.ai.prompts.index › AdminAiPromptController@index
+  POST      admin/ia/prompts .................................. admin.ai.prompts.store › AdminAiPromptController@store
+  GET|HEAD  admin/ia/prompts/novo ........................... admin.ai.prompts.create › AdminAiPromptController@create
+  GET|HEAD  admin/ia/prompts/{prompt} ........................... admin.ai.prompts.show › AdminAiPromptController@show
+  PUT       admin/ia/prompts/{prompt} ....................... admin.ai.prompts.update › AdminAiPromptController@update
+  PATCH     admin/ia/prompts/{prompt}/alternar .............. admin.ai.prompts.toggle › AdminAiPromptController@toggle
+  GET|HEAD  admin/ia/prompts/{prompt}/comparar/versoes .... admin.ai.prompts.compare › AdminAiPromptController@compare
+  POST      admin/ia/prompts/{prompt}/duplicar ........ admin.ai.prompts.duplicate › AdminAiPromptController@duplicate
+  GET|HEAD  admin/ia/prompts/{prompt}/editar .................... admin.ai.prompts.edit › AdminAiPromptController@edit
+  GET|POST|HEAD admin/ia/prompts/{prompt}/testar ................ admin.ai.prompts.test › AdminAiPromptController@test
+  POST      admin/ia/prompts/{prompt}/versoes/{version}/restaurar admin.ai.prompts.restore › AdminAiPromptController@…
+  GET|HEAD  admin/ia/provedores ........................... admin.ai.providers.index › AdminAiProviderController@index
+  PUT       admin/ia/provedores/{provider} .............. admin.ai.providers.update › AdminAiProviderController@update
+  GET|HEAD  admin/ia/provedores/{provider}/editar ........... admin.ai.providers.edit › AdminAiProviderController@edit
+  POST      admin/ia/provedores/{provider}/testar ........... admin.ai.providers.test › AdminAiProviderController@test
+  POST      admin/ia/testar .................................. admin.ai-settings.test › AdminAiSettingsController@test
+  GET|HEAD  admin/imoveis .................................. admin.real-estate.index › AdminRealEstateController@index
+  PUT       admin/imoveis/{property} ..................... admin.real-estate.update › AdminRealEstateController@update
+  GET|HEAD  admin/importacao-rss ............................ admin.rss-imports.index › AdminRssImportController@index
+  POST      admin/importacao-rss/importar ................. admin.rss-imports.import › AdminRssImportController@import
+  PUT       admin/importacao-rss/{article} ................ admin.rss-imports.update › AdminRssImportController@update
+  GET|HEAD  admin/media-banners ......................... admin.media-banners.index › AdminMediaBannerController@index
+  POST      admin/media-banners ......................... admin.media-banners.store › AdminMediaBannerController@store
+  PUT       admin/media-banners/transmissao-home admin.media-banners.home-live.update › AdminMediaBannerController@up…
+  PUT       admin/media-banners/{mediaBanner} ......... admin.media-banners.update › AdminMediaBannerController@update
+  GET|HEAD  admin/news .................................................. admin.news.index › AdminNewsController@index
+  POST      admin/news .................................................. admin.news.store › AdminNewsController@store
+  GET|HEAD  admin/news/create ......................................... admin.news.create › AdminNewsController@create
+  PUT       admin/news/{news} ......................................... admin.news.update › AdminNewsController@update
+  GET|HEAD  admin/news/{news}/edit ........................................ admin.news.edit › AdminNewsController@edit
+  GET|HEAD  admin/news/{news}/fluxo ...................... admin.news.workflow.show › AdminNewsWorkflowController@show
+  POST      admin/news/{news}/fluxo .......... admin.news.workflow.transition › AdminNewsWorkflowController@transition
+  GET|HEAD  admin/noticias/ia .................................... admin.news.ai.create › AdminAiNewsController@create
+  POST      admin/noticias/ia/gerar .......................... admin.news.ai.generate › AdminAiNewsController@generate
+  PUT       admin/noticias/ia/memoria-editorial ... admin.news.ai.profile.update › AdminAiNewsController@updateProfile
+  GET|HEAD  admin/notificacoes-push ........... admin.push-notifications.index › AdminPushNotificationController@index
+  POST      admin/notificacoes-push/enviar ...... admin.push-notifications.send › AdminPushNotificationController@send
+  GET|HEAD  admin/podcasts ....................................... admin.podcasts.index › AdminPodcastController@index
+  POST      admin/podcasts/series .............................. admin.podcasts.series › AdminPodcastController@series
+  POST      admin/podcasts/series/{series}/episodios ......... admin.podcasts.episode › AdminPodcastController@episode
+  GET|HEAD  admin/radio ................................................. admin.radio.edit › AdminRadioController@edit
+  PUT       admin/radio ............................................. admin.radio.update › AdminRadioController@update
+  GET|HEAD  admin/radio-central ................................ admin.radio-dashboard › AdminRadioDashboardController
+  GET|HEAD  admin/radio/estrutura .................. admin.radio-structure.index › AdminRadioStructureController@index
+  PUT       admin/radio/estrutura/emissora ..... admin.radio-structure.station › AdminRadioStructureController@station
+  POST      admin/radio/estrutura/grade .............. admin.radio-structure.slot › AdminRadioStructureController@slot
+  POST      admin/radio/estrutura/locutores .......... admin.radio-structure.host › AdminRadioStructureController@host
+  POST      admin/radio/estrutura/programas .... admin.radio-structure.program › AdminRadioStructureController@program
+  GET|HEAD  admin/radio/publicidade .................... admin.audio-ads.index › AdminAudioAdvertisingController@index
+  POST      admin/radio/publicidade/campanhas .... admin.audio-ads.campaign › AdminAudioAdvertisingController@campaign
+  POST      admin/radio/publicidade/spots ................ admin.audio-ads.spot › AdminAudioAdvertisingController@spot
+  GET|HEAD  admin/redacao .............................. admin.editorial-room.dashboard › AdminEditorialRoomController
+  GET|HEAD  admin/redacao/agentes ............................... admin.ai-agents.index › AdminAiAgentController@index
+  PATCH     admin/redacao/agentes/etapas/{step}/decidir ....... admin.ai-agents.decide › AdminAiAgentController@decide
+  POST      admin/redacao/agentes/pautas/{pitch}/etapas ....... admin.ai-agents.record › AdminAiAgentController@record
+  GET|HEAD  admin/redacao/calendario ......... admin.editorial-calendar.index › AdminEditorialCalendarController@index
+  POST      admin/redacao/calendario/eventos . admin.editorial-calendar.store › AdminEditorialCalendarController@store
+  POST      admin/redacao/calendario/sugestoes admin.editorial-calendar.suggest › AdminEditorialCalendarController@su…
+  POST      admin/redacao/fontes/pautas/{pitch} . admin.editorial-sources.store › AdminEditorialSourceController@store
+  POST      admin/redacao/fontes/{source}/afirmacoes admin.editorial-sources.claims.store › AdminEditorialSourceContr…
+  POST      admin/redacao/fontes/{source}/capturar admin.editorial-sources.fetch › AdminEditorialSourceController@fet…
+  GET|HEAD  admin/redacao/pautas ................. admin.editorial-pitches.index › AdminEditorialPitchController@index
+  POST      admin/redacao/pautas ................. admin.editorial-pitches.store › AdminEditorialPitchController@store
+  GET|HEAD  admin/redacao/pautas/nova .......... admin.editorial-pitches.create › AdminEditorialPitchController@create
+  PUT       admin/redacao/pautas/{pitch} ....... admin.editorial-pitches.update › AdminEditorialPitchController@update
+  GET|HEAD  admin/redacao/pautas/{pitch}/editar .... admin.editorial-pitches.edit › AdminEditorialPitchController@edit
+  PATCH     admin/redacao/pautas/{pitch}/mover ..... admin.editorial-pitches.move › AdminEditorialPitchController@move
+  POST      admin/redacao/verificacao/afirmacoes/{claim} admin.editorial-verification.review › AdminEditorialVerifica…
+  GET|HEAD  admin/redacao/verificacao/pautas/{pitch} admin.editorial-verification.index › AdminEditorialVerificationC…
+  GET|HEAD  admin/rss-feeds ..................................... admin.rss-feeds.index › AdminRssFeedController@index
+  POST      admin/rss-feeds ..................................... admin.rss-feeds.store › AdminRssFeedController@store
+  POST      admin/rss-feeds/refresh ......................... admin.rss-feeds.refresh › AdminRssFeedController@refresh
+  PUT       admin/rss-feeds/{rssFeed} ......................... admin.rss-feeds.update › AdminRssFeedController@update
+  GET|HEAD  admin/saude-do-sistema ........................... admin.system-health.index › AdminSystemHealthController
+  GET|HEAD  admin/site-content ............................. admin.site-content.edit › AdminSiteContentController@edit
+  PUT       admin/site-content ......................... admin.site-content.update › AdminSiteContentController@update
+  GET|HEAD  admin/social-links .............................. admin.social-links.edit › AdminSocialLinkController@edit
+  PUT       admin/social-links .......................... admin.social-links.update › AdminSocialLinkController@update
+  GET|HEAD  admin/social-login ............................. admin.social-login.edit › AdminSocialLoginController@edit
+  PUT       admin/social-login ......................... admin.social-login.update › AdminSocialLoginController@update
+  GET|HEAD  admin/tags ................................................... admin.tags.index › AdminTagController@index
+  POST      admin/tags ................................................... admin.tags.store › AdminTagController@store
+  PUT       admin/tags/{tag} ........................................... admin.tags.update › AdminTagController@update
+  GET|HEAD  admin/tendencias-rss .............................. admin.rss-trends.index › AdminRssTrendController@index
+  GET|HEAD  admin/tracking-pixels ..................... admin.tracking-pixels.edit › AdminTrackingPixelController@edit
+  PUT       admin/tracking-pixels ................. admin.tracking-pixels.update › AdminTrackingPixelController@update
+  GET|HEAD  admin/tv ........................................................ admin.tv.index › AdminTvController@index
+  GET|HEAD  admin/tv-central ......................................... admin.tv-dashboard › AdminTvDashboardController
+  POST      admin/tv/canais ............................................. admin.tv.channel › AdminTvController@channel
+  POST      admin/tv/canais/{channel}/transmissoes .................. admin.tv.broadcast › AdminTvController@broadcast
+  GET|HEAD  admin/tv/recortes ............................... admin.video-clips.index › AdminVideoClipController@index
+  POST      admin/tv/recortes ............................... admin.video-clips.store › AdminVideoClipController@store
+  POST      admin/tv/recortes/{clip}/repetir ................ admin.video-clips.retry › AdminVideoClipController@retry
+  PATCH     admin/tv/recortes/{clip}/revisao .............. admin.video-clips.review › AdminVideoClipController@review
+  GET|HEAD  admin/tv/roteiros ........................... admin.video-scripts.index › AdminVideoScriptController@index
+  POST      admin/tv/roteiros ........................... admin.video-scripts.store › AdminVideoScriptController@store
+  PATCH     admin/tv/roteiros/{script}/revisao ........ admin.video-scripts.review › AdminVideoScriptController@review
+  GET|HEAD  admin/tv/roteiros/{script}/teleprompter admin.video-scripts.teleprompter › AdminVideoScriptController@tel…
+  GET|HEAD  admin/upload-diagnostico ................................... admin.upload-diagnostics › routes/web.php:105
+  GET|HEAD  admin/users ................................................ admin.users.index › AdminUserController@index
+  PUT       admin/users/{user} ....................................... admin.users.update › AdminUserController@update
+  GET|HEAD  admin/videos ...................................... admin.videos.index › AdminVideoLibraryController@index
+  POST      admin/videos/categorias ..................... admin.videos.category › AdminVideoLibraryController@category
+  POST      admin/videos/itens ................................ admin.videos.video › AdminVideoLibraryController@video
+  POST      admin/videos/playlists ...................... admin.videos.playlist › AdminVideoLibraryController@playlist
+  POST      admin/videos/series ............................. admin.videos.series › AdminVideoLibraryController@series
+  POST      ai-writing ............................................ admin.ai-writing.store › AiWritingController@store
+  GET|HEAD  buscar ............................................................. search.index › SearchController@index
+  GET|HEAD  buscar/sugestoes ....................................... search.suggestions › SearchController@suggestions
+  GET|HEAD  cidades/{city} ..................................................... cities.show › CityNewsController@show
+  GET|HEAD  classificados-veiculos ................................ vehicles.index › VehicleClassifiedController@index
+  POST      classificados-veiculos/anunciar ....................... vehicles.store › VehicleClassifiedController@store
+  GET|HEAD  classificados-veiculos/anunciar/novo ................ vehicles.create › VehicleClassifiedController@create
+  GET|HEAD  classificados-veiculos/{vehicle} ........................ vehicles.show › VehicleClassifiedController@show
+  GET|HEAD  dashboard ................................................................ dashboard › DashboardController
+  GET|HEAD  firebase-messaging-sw.js ........................... pwa.firebase-sw › PwaController@firebaseServiceWorker
+  GET|HEAD  fotos-eventos .................................................... events.gallery › EventGalleryController
+  GET|HEAD  imoveis ................................................... real-estate.index › RealEstateController@index
+  POST      imoveis/anunciar .......................................... real-estate.store › RealEstateController@store
+  GET|HEAD  imoveis/anunciar/novo ................................... real-estate.create › RealEstateController@create
+  GET|HEAD  imoveis/{property} .......................................... real-estate.show › RealEstateController@show
+  GET|HEAD  login ................................................................... login › AuthController@showLogin
+  POST      login ................................................................. login.store › AuthController@login
+  GET|HEAD  login/{provider} ......................................... social.redirect › SocialAuthController@redirect
+  GET|HEAD  login/{provider}/callback ................................ social.callback › SocialAuthController@callback
+  POST      logout .................................................................... logout › AuthController@logout
+  GET|HEAD  noticias/{news:slug} ..................................................... news.show › NewsController@show
+  GET|HEAD  noticias/{news}/audio .......................................... news.audio › NewsNarrationController@show
+  GET|HEAD  offline .............................................................. pwa.offline › PwaController@offline
+  GET|HEAD  podcasts ........................................................ podcasts.index › PodcastController@index
+  GET|HEAD  podcasts/{series}/feed.xml ........................................ podcasts.feed › PodcastController@feed
+  POST      push/subscriptions ........................... push-subscriptions.store › PushSubscriptionController@store
+  DELETE    push/subscriptions ....................... push-subscriptions.destroy › PushSubscriptionController@destroy
+  GET|HEAD  quem-somos ....................................................................... about › AboutController
+  GET|HEAD  radio ................................................................ radio.index › RadioController@index
+  POST      radio/pedidos ........................................ radio.requests.store › RadioRequestController@store
+  POST      radio/publicidade/{campaign}/reproducao ..................... audio-ads.play › AudioAdPlayController@store
+  POST      register ........................................................ register.store › AuthController@register
+  GET|HEAD  robots.txt ............................................................. robots › SitemapController@robots
+  GET|HEAD  shorts/{clip} ................................................ video-clips.show › VideoClipController@show
+  GET|HEAD  sitemap.xml ............................................................ sitemap › SitemapController@index
+  GET|HEAD  tv ......................................................................... tv.index › TvController@index
+  GET|HEAD  up ........... vendor/laravel/framework/src/Illuminate/Foundation/Configuration/ApplicationBuilder.php:224
+  GET|HEAD  videos ....................................................... videos.index › VideoLibraryController@index
+  GET|HEAD  videos/{video} ................................................. videos.show › VideoLibraryController@show
+
+                                                                                                  Showing [187] routes
+

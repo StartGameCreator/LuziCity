@@ -1,0 +1,2 @@
+@extends('layouts.app',['title'=>'Teleprompter - '.$script->title])
+@section('content')<section class="content-band"><p class="eyebrow">Teleprompter · {{ $script->status }}</p><h1>{{ $script->title }}</h1><p>Velocidade estimada: {{ $script->estimated_duration_seconds }} segundos.</p></section><section class="settings-panel" style="font-size:2rem;line-height:1.6;white-space:pre-line">{{ $script->teleprompter_text }}</section>@endsection

@@ -17,3 +17,9 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Arquivos locais/operacionais do LuziCity
+/servidor_*.out.log
+/servidor_*.err.log
+/instalacao_*.log
+*.log

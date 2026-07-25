@@ -1,0 +1,5 @@
+<?php
+namespace Tests\Feature;use App\Models\PodcastEpisode;use App\Models\PodcastSeries;use Illuminate\Foundation\Testing\RefreshDatabase;use Tests\TestCase;
+class PodcastTest extends TestCase{use RefreshDatabase;
+ public function test_public_page_and_rss_only_expose_published_episodes():void{$series=PodcastSeries::create(['title'=>'Cidade em Pauta','slug'=>'cidade-em-pauta','description'=>'Podcast local','language'=>'pt-BR','is_published'=>true]);PodcastEpisode::create(['podcast_series_id'=>$series->id,'title'=>'Publicado','slug'=>'publicado','audio_path'=>'https://example.com/a.mp3','is_published'=>true,'published_at'=>now()]);PodcastEpisode::create(['podcast_series_id'=>$series->id,'title'=>'Rascunho','slug'=>'rascunho','audio_path'=>'https://example.com/b.mp3','is_published'=>false]);$this->get('/podcasts')->assertOk()->assertSee('Publicado')->assertDontSee('Rascunho');$this->get('/podcasts/cidade-em-pauta/feed.xml')->assertOk()->assertHeader('Content-Type','application/rss+xml; charset=UTF-8')->assertSee('Publicado')->assertDontSee('Rascunho');}
+}

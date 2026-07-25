@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;use Illuminate\Database\Eloquent\Model;use Illuminate\Database\Eloquent\Relations\BelongsTo;
+class EditorialCalendarEvent extends Model{protected $fillable=['title','description','event_type','status','starts_at','ends_at','responsible_id','created_by','is_ai_suggestion'];protected function casts():array{return['starts_at'=>'datetime','ends_at'=>'datetime','is_ai_suggestion'=>'boolean'];}public function responsible():BelongsTo{return $this->belongsTo(User::class,'responsible_id');}public function creator():BelongsTo{return $this->belongsTo(User::class,'created_by');}}
