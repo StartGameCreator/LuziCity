@@ -1,0 +1,8 @@
+@extends('layouts.app')
+@section('title','Benefícios')
+@section('content')
+<section class="content-band"><p class="eyebrow">Fase 14.4 · Assinaturas</p><h1>Benefícios</h1><p>Conteúdo, eventos, cupons, newsletter e podcasts.</p></section>
+<section class="settings-panel"><h2>Novo benefício</h2><form class="admin-form" method="post" action="{{ route('admin.subscription-benefits.store') }}">@csrf
+<label>Nome<input name="name" required></label><label>Tipo<select name="type"><option value="content">Conteúdo</option><option value="event">Evento</option><option value="coupon">Cupom</option><option value="newsletter">Newsletter</option><option value="podcast">Podcast</option></select></label><label>Código<input name="code"></label><label>Link<input type="url" name="destination_url"></label><label>Início<input type="datetime-local" name="starts_at"></label><label>Fim<input type="datetime-local" name="ends_at"></label><label>Limite de resgates<input type="number" name="usage_limit" min="1"></label><label>Descrição<textarea name="description"></textarea></label><fieldset><legend>Planos elegíveis</legend>@foreach($plans as $plan)<label><input type="checkbox" name="plan_ids[]" value="{{ $plan->id }}"> {{ $plan->name }}</label>@endforeach</fieldset><label><input type="checkbox" name="is_active" value="1" checked> Ativo</label><button class="primary-action">Criar benefício</button></form></section>
+@foreach($benefits as $benefit)<section class="settings-panel"><p class="eyebrow">{{ $benefit->type }} · {{ $benefit->redeemed_count }} resgates</p><h2>{{ $benefit->name }}</h2><p>{{ $benefit->description }}</p><p>Planos: {{ $benefit->plans->pluck('name')->join(', ') }}</p><p>Código: {{ $benefit->code??'—' }}</p></section>@endforeach
+@endsection

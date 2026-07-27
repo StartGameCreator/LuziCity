@@ -19,5 +19,6 @@
         @else
             <div class="notice">Sua conta ainda nao esta marcada como assinante.</div>
         @endif
+        <p><a class="primary-action" href="{{ route('subscriber.show') }}">Minha assinatura</a></p>
     </section>
 @endsection

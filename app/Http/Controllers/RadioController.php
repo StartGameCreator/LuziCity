@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\RadioRequest;
 use App\Models\Setting;
+use App\Services\RadioPlaybackService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class RadioController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, RadioPlaybackService $playback): View
     {
         $chatCategories = RadioRequest::categoryOptions();
         $chatNickname = trim((string) $request->query('apelido', ''));
@@ -42,6 +43,7 @@ class RadioController extends Controller
 
         return view('radio.index', [
             'radioSettings' => Setting::radioSettings(),
+            'radioPlayback' => $playback->state(),
             'audioCampaign' => app(\App\Services\AudioAdvertisingService::class)->current(),
             'station' => $station = \App\Models\RadioStation::query()->where('is_active', true)->first(),
             'onAir' => $station ? app(\App\Services\RadioOnAirService::class)->current($station) : null,

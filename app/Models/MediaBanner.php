@@ -2,16 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCurrentSite;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class MediaBanner extends Model
 {
+    use BelongsToCurrentSite;
+
     public const TYPE_YOUTUBE = 'youtube';
+
     public const TYPE_FACEBOOK_REEL = 'facebook_reel';
+
     public const TYPE_VEHICLE_YOUTUBE = 'vehicle_youtube';
 
     protected $fillable = [
+        'site_id',
         'type',
         'title',
         'embed_code',

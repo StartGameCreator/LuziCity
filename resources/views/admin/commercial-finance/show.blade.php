@@ -1,0 +1,12 @@
+@extends('layouts.app')
+@section('title',$invoice->number)
+@section('content')
+<section class="content-band"><p class="eyebrow">{{ $invoice->status }}</p><h1>{{ $invoice->description }}</h1><p>{{ $invoice->number }} · {{ $invoice->advertiser->company_name }}</p></section>
+<section class="category-admin-list"><article class="settings-panel"><h2>R$ {{ number_format((float)$invoice->amount,2,',','.') }}</h2><p>Pago: R$ {{ number_format((float)$invoice->paid_amount,2,',','.') }}</p><p>Saldo: R$ {{ number_format($invoice->balance,2,',','.') }}</p></article><article class="settings-panel"><h2>Vencimento</h2><p>{{ $invoice->due_at->format('d/m/Y') }}</p><p>{{ $invoice->is_recurring ? 'Renovação '.$invoice->recurrence : 'Cobrança única' }}</p></article></section>
+@if(!in_array($invoice->status,['paid','cancelled']))
+<section class="settings-panel"><h2>Registrar pagamento</h2><form class="admin-form" method="post" action="{{ route('admin.commercial-finance.payments.store',$invoice) }}">@csrf<label>Valor<input type="number" name="amount" min=".01" max="{{ $invoice->balance }}" step=".01" required></label><label>Data<input type="datetime-local" name="paid_at" value="{{ now()->format('Y-m-d\TH:i') }}" required></label><label>Forma<select name="method"><option value="pix">PIX</option><option value="boleto">Boleto</option><option value="card">Cartão</option><option value="transfer">Transferência</option><option value="cash">Dinheiro</option><option value="other">Outro</option></select></label><label>Referência<input name="reference"></label><label>Observações<textarea name="notes"></textarea></label><button class="primary-action">Registrar</button></form></section>
+@endif
+<section class="settings-panel"><h2>Pagamentos</h2>@forelse($invoice->payments as $payment)<p>{{ $payment->paid_at->format('d/m/Y H:i') }} · R$ {{ number_format((float)$payment->amount,2,',','.') }} · {{ strtoupper($payment->method) }} · {{ $payment->reference }}</p>@empty<p>Nenhum pagamento registrado.</p>@endforelse</section>
+@if($invoice->is_recurring)<form method="post" action="{{ route('admin.commercial-finance.renew',$invoice) }}">@csrf<button class="secondary-action">Gerar renovação</button></form>@endif
+@if($invoice->status!=='paid' && $invoice->status!=='cancelled')<form method="post" action="{{ route('admin.commercial-finance.cancel',$invoice) }}">@csrf<button class="secondary-action">Cancelar cobrança</button></form>@endif
+@endsection

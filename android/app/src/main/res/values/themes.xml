@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.LuziCity" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#0067C0</item>
+        <item name="colorPrimaryVariant">#004E8C</item>
+        <item name="android:statusBarColor">#004E8C</item>
+    </style>
+</resources>

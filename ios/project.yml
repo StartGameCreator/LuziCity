@@ -1,0 +1,24 @@
+name: LuziCity
+options:
+  bundleIdPrefix: com.luzicity
+  deploymentTarget:
+    iOS: "16.0"
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: 11.0.0
+targets:
+  LuziCity:
+    type: application
+    platform: iOS
+    sources:
+      - path: LuziCity
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.luzicity.app
+        SWIFT_VERSION: 5.10
+        CODE_SIGN_ENTITLEMENTS: LuziCity/LuziCity.entitlements
+        INFOPLIST_FILE: LuziCity/Info.plist
+    dependencies:
+      - package: Firebase
+        product: FirebaseMessaging

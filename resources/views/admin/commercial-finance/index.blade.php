@@ -1,0 +1,17 @@
+@extends('layouts.app')
+@section('title', 'Financeiro Comercial')
+@section('content')
+<section class="content-band"><p class="eyebrow">Fase 13.4 · Comercial</p><h1>Financeiro Comercial</h1><p>Cobranças, vencimentos, pagamentos, renovações e inadimplência.</p></section>
+<section class="category-admin-list">
+@foreach([['A receber','R$ '.number_format($metrics['receivable'],2,',','.')],['Recebido','R$ '.number_format($metrics['received'],2,',','.')],['Inadimplente','R$ '.number_format($metrics['overdue'],2,',','.')],['Vencem em 7 dias',$metrics['dueSoon']]] as [$label,$value])<article class="settings-panel"><small>{{ $label }}</small><h2>{{ $value }}</h2></article>@endforeach
+</section>
+<section class="settings-panel"><h2>Nova cobrança</h2><form class="admin-form" method="post" action="{{ route('admin.commercial-finance.store') }}">@csrf
+<label>Anunciante<select name="advertiser_profile_id" required><option value="">Selecione</option>@foreach($advertisers as $advertiser)<option value="{{ $advertiser->id }}">{{ $advertiser->company_name }}</option>@endforeach</select></label>
+<label>Proposta aprovada<select name="commercial_proposal_id"><option value="">Sem proposta</option>@foreach($proposals as $proposal)<option value="{{ $proposal->id }}">{{ $proposal->number }} · {{ $proposal->title }}</option>@endforeach</select></label>
+<label>Descrição<input name="description" required></label><label>Valor<input type="number" name="amount" min=".01" step=".01" required></label>
+<label>Emissão<input type="date" name="issued_at" value="{{ today()->format('Y-m-d') }}" required></label><label>Vencimento<input type="date" name="due_at" required></label>
+<label><input type="checkbox" name="is_recurring" value="1"> Cobrança recorrente</label><label>Recorrência<select name="recurrence"><option value="">Selecione</option><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option><option value="yearly">Anual</option></select></label>
+<label>Próxima renovação<input type="date" name="next_renewal_at"></label><label>Observações<textarea name="notes"></textarea></label><button class="primary-action">Criar cobrança</button></form></section>
+<section class="settings-panel"><form method="get" class="admin-form"><label>Status<select name="status"><option value="">Todos</option>@foreach(['pending'=>'Pendente','partial'=>'Parcial','paid'=>'Pago','overdue'=>'Vencido','cancelled'=>'Cancelado'] as $key=>$label)<option value="{{ $key }}" @selected(request('status')===$key)>{{ $label }}</option>@endforeach</select></label><label>Anunciante<select name="advertiser"><option value="">Todos</option>@foreach($advertisers as $advertiser)<option value="{{ $advertiser->id }}" @selected(request('advertiser')==$advertiser->id)>{{ $advertiser->company_name }}</option>@endforeach</select></label><button class="secondary-action">Filtrar</button></form></section>
+<section class="category-admin-list">@forelse($invoices as $invoice)<article class="settings-panel"><p class="eyebrow">{{ $invoice->number }} · {{ $invoice->status }}</p><h2><a href="{{ route('admin.commercial-finance.show',$invoice) }}">{{ $invoice->description }}</a></h2><p>{{ $invoice->advertiser?->company_name }} · vence {{ $invoice->due_at->format('d/m/Y') }}</p><p>R$ {{ number_format((float)$invoice->amount,2,',','.') }} · saldo R$ {{ number_format($invoice->balance,2,',','.') }}</p></article>@empty<p>Nenhuma cobrança cadastrada.</p>@endforelse</section>{{ $invoices->links() }}
+@endsection

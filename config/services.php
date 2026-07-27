@@ -67,8 +67,6 @@ return [
         'redirect' => env('TIKTOK_REDIRECT_URI'),
     ],
 
-
-
     'firebase' => [
         'api_key' => env('FIREBASE_API_KEY'),
         'auth_domain' => env('FIREBASE_AUTH_DOMAIN'),
@@ -78,6 +76,23 @@ return [
         'app_id' => env('FIREBASE_APP_ID'),
         'vapid_key' => env('FIREBASE_VAPID_KEY'),
         'service_account' => env('FIREBASE_SERVICE_ACCOUNT'),
+    ],
+
+    'mercado_pago' => [
+        'access_token' => env('MERCADO_PAGO_ACCESS_TOKEN'),
+        'webhook_secret' => env('MERCADO_PAGO_WEBHOOK_SECRET'),
+        'sandbox' => env('MERCADO_PAGO_SANDBOX', true),
+    ],
+
+    'azuracast' => [
+        'enabled' => env('AZURACAST_ENABLED', false),
+        'base_url' => env('AZURACAST_BASE_URL', 'http://127.0.0.1:8080'),
+        'api_key' => env('AZURACAST_API_KEY'),
+        'station_id' => env('AZURACAST_STATION_ID'),
+        'station_shortcode' => env('AZURACAST_STATION_SHORTCODE'),
+        'timeout' => (int) env('AZURACAST_TIMEOUT', 10),
+        'verify_ssl' => filter_var(env('AZURACAST_VERIFY_SSL', true), FILTER_VALIDATE_BOOL),
+        'cache_seconds' => (int) env('AZURACAST_CACHE_SECONDS', 10),
     ],
 
 ];

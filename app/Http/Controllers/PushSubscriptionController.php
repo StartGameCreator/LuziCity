@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PushSubscription;
+use App\Models\Site;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -20,6 +21,7 @@ class PushSubscriptionController extends Controller
             ['token' => $validated['token']],
             [
                 'user_id' => $request->user()?->id,
+                'site_id' => Site::current()?->id,
                 'device_name' => $validated['device_name'] ?? null,
                 'platform' => $validated['platform'] ?? null,
                 'last_seen_at' => now(),

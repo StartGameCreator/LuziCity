@@ -6,7 +6,9 @@ use App\Models\VehicleListing;
 use App\Services\RssImportService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -17,6 +19,7 @@ Artisan::command('luzicity:create-admin {email} {--name=Administrador Luzicity} 
 
     if (! $password || strlen($password) < 8) {
         $this->error('A senha precisa ter pelo menos 8 caracteres.');
+
         return self::FAILURE;
     }
 
@@ -33,6 +36,7 @@ Artisan::command('luzicity:create-admin {email} {--name=Administrador Luzicity} 
     $user->syncRoles(['Super Admin', 'Admin']);
 
     $this->info('Administrador criado ou atualizado com sucesso.');
+
     return self::SUCCESS;
 })->purpose('Create or update the first Luzicity administrator');
 
@@ -53,6 +57,7 @@ Artisan::command('luzicity:sync-vehicle-brand-logos', function () {
     }
 
     $this->info('Logos das marcas de veículos sincronizadas por tipo.');
+
     return self::SUCCESS;
 })->purpose('Sincroniza automaticamente as logos das marcas anunciadas nos classificados');
 
@@ -69,6 +74,17 @@ Artisan::command('luzicity:import-rss {--limit=12}', function () {
     return self::SUCCESS;
 })->purpose('Importa noticias dos feeds RSS ativos para o banco de dados');
 
+Artisan::command('luzicity:queue-prune {--days=30}', function () {
+    $days = max(1, min(365, (int) $this->option('days')));
+    if (Schema::hasTable('queue_activity_logs')) {
+        DB::table('queue_activity_logs')->where('occurred_at', '<', now()->subDays($days))->delete();
+    }
+    Artisan::call('queue:prune-failed', ['--hours' => $days * 24]);
+    $this->info("Histórico de filas anterior a {$days} dia(s) removido.");
+
+    return self::SUCCESS;
+})->purpose('Remove telemetria e dead-letter antigos das filas');
+
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('luzicity:rss-collect-due --limit=12 --feeds=50')
@@ -76,3 +92,19 @@ Schedule::command('luzicity:rss-collect-due --limit=12 --feeds=50')
     ->withoutOverlapping(10);
 
 Schedule::command('luzicity:rss-analyze-trends')->hourly()->withoutOverlapping(30);
+Schedule::command('analytics:purge-expired')->dailyAt('03:30')->withoutOverlapping(30);
+Schedule::command('luzicity:queue-prune --days=30')->dailyAt('04:00')->withoutOverlapping(30);
+Schedule::command('luzicity:backup --verify')->dailyAt('02:30')->withoutOverlapping(120)->onOneServer();
+Schedule::command('luzicity:backup-prune')->dailyAt('05:00')->withoutOverlapping(30)->onOneServer();
+
+Artisan::command('luzicity:metrics-prune {--days=}', function () {
+    $days = max(1, (int) ($this->option('days') ?: config('observability.retention_days')));
+    $removed = Schema::hasTable('request_metrics')
+        ? DB::table('request_metrics')->where('occurred_at', '<', now()->subDays($days))->delete()
+        : 0;
+    $this->info("{$removed} metrica(s) anterior(es) a {$days} dia(s) removida(s).");
+
+    return self::SUCCESS;
+})->purpose('Remove metricas HTTP anteriores ao periodo de retencao');
+
+Schedule::command('luzicity:metrics-prune')->dailyAt('05:30')->withoutOverlapping(30)->onOneServer();

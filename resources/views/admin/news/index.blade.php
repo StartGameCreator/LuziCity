@@ -20,6 +20,16 @@
                     <p>{{ $article->excerpt }}</p>
                 </div>
                 <a class="secondary-action" href="{{ route('admin.news.edit', $article) }}">Editar</a>
+                @if(auth()->user()->hasAnyRole(['Super Admin','Admin']) && $distributionSites->isNotEmpty())
+                <details><summary>Distribuir</summary>
+                    <form method="post" action="{{ route('admin.news.distributions.store',$article) }}" class="admin-form">@csrf
+                        <label>Site <select name="target_site_id">@foreach($distributionSites as $site)<option value="{{ $site->id }}">{{ $site->name }}</option>@endforeach</select></label>
+                        <label>Modo <select name="mode"><option value="reference">Referenciar original</option><option value="copy">Copiar como rascunho</option></select></label>
+                        <button class="secondary-action">Distribuir</button>
+                    </form>
+                    @foreach($article->distributions as $distribution)<small>{{ $distribution->targetSite?->name }} · {{ $distribution->mode }}</small>@endforeach
+                </details>
+                @endif
             </article>
         @endforeach
 

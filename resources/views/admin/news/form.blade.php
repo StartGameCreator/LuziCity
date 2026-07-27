@@ -167,6 +167,20 @@
                 </label>
             </div>
 
+            <section class="ad-settings-panel" aria-label="Conteúdo patrocinado">
+                <p class="eyebrow">Comercial</p><h2>Conteúdo patrocinado</h2>
+                <p>A identificação pública e a aprovação comercial são obrigatórias antes da publicação.</p>
+                <label class="inline-check"><input type="checkbox" name="is_sponsored" value="1" @checked(old('is_sponsored', $article->is_sponsored))> Esta notícia é patrocinada</label>
+                <div class="social-settings-grid">
+                    <label>Anunciante<select name="sponsor_advertiser_id"><option value="">Selecione</option>@foreach($advertisers as $advertiser)<option value="{{ $advertiser->id }}" @selected(old('sponsor_advertiser_id',$article->sponsor_advertiser_id)==$advertiser->id)>{{ $advertiser->company_name }}</option>@endforeach</select></label>
+                    <label>Campanha<select name="sponsor_campaign_id"><option value="">Sem campanha</option>@foreach($sponsorCampaigns as $campaign)<option value="{{ $campaign->id }}" @selected(old('sponsor_campaign_id',$article->sponsor_campaign_id)==$campaign->id)>{{ $campaign->name }}</option>@endforeach</select></label>
+                    <label>Identificação pública<input name="sponsor_label" value="{{ old('sponsor_label',$article->sponsor_label ?: 'Conteúdo patrocinado') }}" maxlength="100"></label>
+                    <label>Início<input type="datetime-local" name="sponsor_starts_at" value="{{ old('sponsor_starts_at',$article->sponsor_starts_at?->format('Y-m-d\TH:i')) }}"></label>
+                    <label>Fim<input type="datetime-local" name="sponsor_ends_at" value="{{ old('sponsor_ends_at',$article->sponsor_ends_at?->format('Y-m-d\TH:i')) }}"></label>
+                </div>
+                @if($article->sponsor_approved_at)<p>Aprovação comercial registrada em {{ $article->sponsor_approved_at->format('d/m/Y H:i') }}.</p>@endif
+            </section>
+
             <section class="ad-settings-panel" aria-label="Carrossel audiovisual da home">
                 <p class="eyebrow">Home</p>
                 <h2>Carrossel audiovisual</h2>

@@ -1,6 +1,67 @@
 @extends('layouts.app', ['title' => 'Configuração da Rádio - Luzicity'])
 
 @section('content')
+    <section class="settings-panel azuracast-admin" aria-label="Motor AzuraCast">
+        <div class="radio-panel-head">
+            <div>
+                <p class="eyebrow">Motor nativo da rádio</p>
+                <h2>AzuraCast</h2>
+                <p>{{ $azuraCastHealth['message'] }}</p>
+            </div>
+            <span @class(['broadcast-health-badge', 'is-online' => $azuraCastHealth['connected']])>
+                {{ $azuraCastHealth['connected'] ? 'Conectado' : 'Desconectado' }}
+            </span>
+        </div>
+
+        <div class="system-health-stats">
+            <article class="system-health-stat">
+                <span>Backend</span>
+                <strong>{{ $azuraCastHealth['base_url'] ?: 'Não configurado' }}</strong>
+            </article>
+            <article class="system-health-stat">
+                <span>Latência</span>
+                <strong>{{ $azuraCastHealth['latency_ms'] !== null ? $azuraCastHealth['latency_ms'].' ms' : '—' }}</strong>
+            </article>
+            <article class="system-health-stat">
+                <span>Ouvintes</span>
+                <strong>{{ data_get($azuraCastNowPlaying, 'listeners', 0) }}</strong>
+            </article>
+            <article class="system-health-stat">
+                <span>Estado</span>
+                <strong>{{ data_get($azuraCastNowPlaying, 'is_online') ? 'No ar' : 'Offline' }}</strong>
+            </article>
+        </div>
+
+        <div class="azuracast-now-playing">
+            @if(data_get($azuraCastNowPlaying, 'art'))
+                <img src="{{ data_get($azuraCastNowPlaying, 'art') }}" alt="Capa da faixa atual">
+            @endif
+            <div>
+                <p class="eyebrow">No ar pelo AzuraCast</p>
+                <h3>{{ data_get($azuraCastNowPlaying, 'title') ?: 'Aguardando a primeira emissora' }}</h3>
+                <p>{{ data_get($azuraCastNowPlaying, 'artist') ?: 'Configure a emissora e a API Key para exibir os metadados.' }}</p>
+            </div>
+        </div>
+
+        <div class="azuracast-controls">
+            <form method="post" action="{{ route('admin.radio.azuracast.test') }}">
+                @csrf
+                <button class="secondary-action" type="submit">Testar conexão</button>
+            </form>
+            @foreach(['start' => 'Iniciar', 'restart' => 'Reiniciar', 'stop' => 'Parar'] as $action => $label)
+                <form method="post" action="{{ route('admin.radio.azuracast.control', $action) }}">
+                    @csrf
+                    <button class="secondary-action" type="submit" @disabled(! $azuraCastHealth['configured'])>{{ $label }}</button>
+                </form>
+            @endforeach
+            <a class="secondary-action" href="{{ route('radio.index') }}" target="_blank">Abrir saída pública</a>
+        </div>
+
+        @if(! $azuraCastHealth['configured'])
+            <p class="form-help">A interface já está incorporada. Para liberar controles administrativos, configure AZURACAST_API_KEY, AZURACAST_STATION_ID e AZURACAST_STATION_SHORTCODE no ambiente do servidor.</p>
+        @endif
+    </section>
+
     <section class="content-band">
         <p class="eyebrow">Administração</p>
         <h1>Rádio Web</h1>

@@ -12,9 +12,11 @@ use App\Models\Setting;
 use App\Models\Tag;
 use App\Models\User;
 use App\Models\VehicleListing;
+use App\Services\ObservabilityService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
@@ -22,7 +24,7 @@ use Throwable;
 
 class AdminSystemHealthController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(ObservabilityService $observability): View
     {
         abort_unless(auth()->user()?->hasAnyRole(['Super Admin', 'Admin']), 403);
 
@@ -37,6 +39,7 @@ class AdminSystemHealthController extends Controller
             $this->googleAdsCheck(),
             $this->contentCheck(),
             $this->rolesCheck(),
+            $this->queueCheck(),
         ]);
 
         return view('admin.system-health.index', [
@@ -47,6 +50,8 @@ class AdminSystemHealthController extends Controller
                 'error' => $checks->where('status', 'error')->count(),
             ],
             'stats' => $this->stats(),
+            'telemetry' => $observability->summary(),
+            'alerts' => $observability->alerts(),
         ]);
     }
 
@@ -231,6 +236,25 @@ class AdminSystemHealthController extends Controller
             $missing->isEmpty() ? 'Papeis principais disponiveis.' : 'Alguns papeis ainda nao existem.',
             $missing->isEmpty() ? User::query()->count().' usuario(s) cadastrado(s).' : 'Faltando: '.$missing->implode(', ')
         );
+    }
+
+    private function queueCheck(): array
+    {
+        $driver = (string) config('queue.default');
+        $failed = Schema::hasTable('failed_jobs') ? DB::table('failed_jobs')->count() : 0;
+        try {
+            $pending = Queue::connection()->size();
+            $status = $driver === 'sync' || $failed > 0 ? 'warning' : 'ok';
+
+            return $this->check(
+                $status,
+                'Filas',
+                "{$pending} job(s) pendente(s) e {$failed} no dead-letter.",
+                "Driver: {$driver}. Retry-after: ".config("queue.connections.{$driver}.retry_after", 'n/a').'s.'
+            );
+        } catch (Throwable $exception) {
+            return $this->check('error', 'Filas', 'Não foi possível consultar o backend de filas.', $exception->getMessage());
+        }
     }
 
     private function stats(): array

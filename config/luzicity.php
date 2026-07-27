@@ -79,6 +79,7 @@ return [
     ],
 
     'home_cache_ttl_minutes' => (int) env('LUZICITY_HOME_CACHE_TTL', 5),
+    'public_cache_ttl_seconds' => max(10, (int) env('LUZICITY_PUBLIC_CACHE_TTL', 60)),
     'rss_queue_enabled' => filter_var(env('LUZICITY_RSS_QUEUE_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
     'rss_queue' => env('LUZICITY_RSS_QUEUE', 'rss'),
 ];

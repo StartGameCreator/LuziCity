@@ -4913,3 +4913,82 @@ legend {
 .table-scroll { overflow:auto; }
 .table-scroll table { width:100%; border-collapse:collapse; }
 .table-scroll th,.table-scroll td { padding:.7rem; border-bottom:1px solid rgba(148,163,184,.25); text-align:left; }
+.azuracast-admin {
+    display: grid;
+    gap: 1rem;
+}
+
+.broadcast-health-badge {
+    align-self: flex-start;
+    border: 1px solid rgba(255, 255, 255, .16);
+    border-radius: 999px;
+    padding: .45rem .8rem;
+    color: var(--muted-text, #aeb8cb);
+}
+
+.broadcast-health-badge.is-online {
+    border-color: rgba(49, 211, 137, .5);
+    color: #71e5ad;
+}
+
+.azuracast-now-playing,
+.radio-native-now-playing {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+}
+
+.azuracast-now-playing img {
+    width: 72px;
+    height: 72px;
+    border-radius: 14px;
+    object-fit: cover;
+}
+
+.azuracast-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+}
+
+.azuracast-controls form {
+    margin: 0;
+}
+
+.radio-native-now-playing {
+    margin-top: 1rem;
+    padding: .8rem 1rem;
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 16px;
+    background: rgba(5, 12, 28, .38);
+}
+
+.radio-native-now-playing div {
+    display: grid;
+    gap: .1rem;
+    min-width: 0;
+}
+
+.radio-native-now-playing strong,
+.radio-native-now-playing span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.radio-native-listeners {
+    margin-left: auto;
+    color: var(--muted-text, #aeb8cb);
+}
+
+@media (max-width: 640px) {
+    .radio-native-now-playing {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .radio-native-listeners {
+        width: 100%;
+        margin-left: 1.5rem;
+    }
+}

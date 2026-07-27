@@ -2,11 +2,15 @@
 
 namespace Tests\Feature\Search;
 
+
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class UnifiedSearchTest extends TestCase
 {
-    public function test_search_page_is_public(): void
+    
+    use RefreshDatabase;
+public function test_search_page_is_public(): void
     {
         $this->get('/buscar')->assertOk()->assertSee('Busca inteligente');
     }

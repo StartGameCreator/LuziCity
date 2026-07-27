@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\RadioRequest;
 use App\Models\Setting;
 use App\Services\Security\EmbedCodeSanitizer;
+use App\Contracts\RadioAutomationProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AdminRadioController extends Controller
 {
-    public function edit(): View
+    public function edit(RadioAutomationProvider $radioAutomation): View
     {
         $this->authorizeAdmin();
 
@@ -22,6 +23,9 @@ class AdminRadioController extends Controller
                 ->take(30)
                 ->get(),
             'chatCategories' => RadioRequest::categoryOptions(),
+            'azuraCastHealth' => $radioAutomation->health(),
+            'azuraCastNowPlaying' => $radioAutomation->nowPlaying(),
+            'azuraCastStation' => $radioAutomation->station(),
         ]);
     }
 

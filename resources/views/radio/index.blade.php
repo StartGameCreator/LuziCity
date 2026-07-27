@@ -3,7 +3,7 @@
 @section('content')
     @php
         $tiktokUrl = trim((string) data_get($radioSettings, 'tiktok_url', ''));
-        $audioStreamUrl = trim((string) data_get($radioSettings, 'audio_stream_url', ''));
+        $audioStreamUrl = trim((string) data_get($radioPlayback, 'stream_url', data_get($radioSettings, 'audio_stream_url', '')));
         $hasTiktokUrl = filled($tiktokUrl);
         $hasAudioStream = filled($audioStreamUrl);
         $fieldLiveEnabled = filter_var(data_get($radioSettings, 'field_live_enabled'), FILTER_VALIDATE_BOOLEAN);
@@ -21,6 +21,15 @@
             <p class="eyebrow">Ao vivo</p>
             <h1>Radio Web Luzicity</h1>
             <p>{{ data_get($radioSettings, 'schedule_text') }}</p>
+            <div class="radio-native-now-playing" data-radio-native-state data-state-url="{{ route('radio.state') }}">
+                <span class="live-dot" aria-hidden="true"></span>
+                <div>
+                    <small data-radio-native-station>{{ data_get($radioPlayback, 'station') }}</small>
+                    <strong data-radio-native-title>{{ data_get($radioPlayback, 'title') ?: 'Rádio Web Luzicity' }}</strong>
+                    <span data-radio-native-artist>{{ data_get($radioPlayback, 'artist') ?: (data_get($radioPlayback, 'source') === 'azuracast' ? 'Transmissão ao vivo' : 'Streaming de contingência') }}</span>
+                </div>
+                <span class="radio-native-listeners" data-radio-native-listeners>{{ data_get($radioPlayback, 'listeners', 0) }} ouvintes</span>
+            </div>
         </div>
 
         <aside class="radio-hero-ads" aria-label="Publicidade da radio">

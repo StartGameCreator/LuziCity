@@ -5,9 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Category extends Model
 {
+    public function paywallRule(): HasOne
+    {
+        return $this->hasOne(PaywallCategoryRule::class);
+    }
+
     protected $fillable = ['parent_id', 'name', 'slug', 'description', 'sort_order', 'is_active'];
 
     protected function casts(): array

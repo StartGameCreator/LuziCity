@@ -2,11 +2,15 @@
 
 namespace Tests\Feature\Seo;
 
+
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class SitemapTest extends TestCase
 {
-    public function test_sitemap_is_public_xml(): void
+    
+    use RefreshDatabase;
+public function test_sitemap_is_public_xml(): void
     {
         $this->get('/sitemap.xml')->assertOk()->assertHeader('content-type', 'application/xml; charset=UTF-8')->assertSee('<urlset', false);
     }

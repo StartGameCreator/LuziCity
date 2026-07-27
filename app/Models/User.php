@@ -5,15 +5,29 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     use HasFactory, HasRoles, Notifiable;
+
+    protected static function booted(): void
+    {
+        static::created(function (User $user): void {
+            if (Schema::hasTable('sites') && Schema::hasTable('site_user')) {
+                $siteId = Site::current()?->id ?? Site::where('is_default', true)->value('id');
+                if ($siteId) {
+                    $user->sites()->syncWithoutDetaching([$siteId => ['permissions' => json_encode([]), 'is_active' => true]]);
+                }
+            }
+        });
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -63,6 +77,34 @@ class User extends Authenticatable
         return $this->hasMany(SocialAccount::class);
     }
 
+    public function sites(): BelongsToMany
+    {
+        return $this->belongsToMany(Site::class)->withPivot(['permissions', 'is_active'])->withTimestamps();
+    }
+
+    public function canAccessSite(Site $site): bool
+    {
+        return $this->hasRole('Super Admin') || $this->sites()
+            ->whereKey($site->id)->wherePivot('is_active', true)->exists();
+    }
+
+    public function sitePermissions(Site $site): array
+    {
+        $value = $this->sites()->whereKey($site->id)->first()?->pivot->permissions;
+
+        return is_array($value) ? $value : (json_decode((string) $value, true) ?: []);
+    }
+
+    public function hasSitePermission(Site $site, string $permission): bool
+    {
+        if ($this->hasRole('Super Admin')) {
+            return true;
+        }
+        $permissions = $this->sitePermissions($site);
+
+        return $permissions === [] || in_array('*', $permissions, true) || in_array($permission, $permissions, true);
+    }
+
     public function subscription(): HasOne
     {
         return $this->hasOne(Subscription::class);
@@ -110,7 +152,8 @@ class User extends Authenticatable
 
     public function hasAdFreeAccess(): bool
     {
-        return $this->subscription?->isActive() === true
+        return ($this->subscription?->isActive() === true
+                && ($this->subscription->plan === null || $this->subscription->plan->is_ad_free))
             || $this->hasAnyRole(['Patrocinador']);
     }
 }

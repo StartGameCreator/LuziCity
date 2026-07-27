@@ -1,0 +1,91 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      deploy_production:
+        description: Deploy manual em produção
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: luzicity-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, sqlite3, pdo_sqlite, zip
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: npm ci
+      - run: cp .env.example .env
+      - run: php artisan key:generate
+      - run: touch database/database.sqlite
+      - run: php artisan migrate --force
+      - run: vendor/bin/pint --test
+      - run: php artisan test --compact
+      - run: npm run build
+      - name: Smoke test local
+        run: |
+          php artisan serve --host=127.0.0.1 --port=8000 > /tmp/luzicity-server.log 2>&1 &
+          sleep 2
+          php artisan luzicity:smoke --base-url=http://127.0.0.1:8000
+      - run: php artisan luzicity:load-test --requests=25 --max-p95=1000
+
+  deploy-staging:
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    needs: quality
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Deploy staging por SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" "'$DEPLOY_PATH/current/scripts/release.sh' '$DEPLOY_PATH' staging"
+
+  deploy-production:
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_production
+    needs: quality
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy produção por SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" "'$DEPLOY_PATH/current/scripts/release.sh' '$DEPLOY_PATH' production"

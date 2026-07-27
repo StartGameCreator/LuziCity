@@ -1,0 +1,12 @@
+@extends('layouts.app')
+@section('title','Minha assinatura')
+@section('content')
+<section class="content-band"><p class="eyebrow">Clube LuziCity</p><h1>Minha assinatura</h1>@if($subscription)<p>Plano {{ $subscription->plan?->name??'não definido' }} · status {{ $subscription->status }}</p>@else<p>Você ainda não possui uma assinatura.</p>@endif</section>
+@if($subscription?->isActive())<p><a class="primary-action" href="{{ route('subscriber.benefits.index') }}">Ver meus benefícios</a></p>@endif
+@if($subscription)<section class="settings-panel"><h2>Detalhes</h2><p>Ciclo: {{ $subscription->billing_cycle==='yearly'?'Anual':'Mensal' }}</p><p>Valor: R$ {{ number_format((float)$subscription->price,2,',','.') }}</p><p>Início: {{ $subscription->starts_at?->format('d/m/Y')??'—' }}</p><p>Fim: {{ $subscription->ends_at?->format('d/m/Y')??'Sem prazo' }}</p><p>Renovação automática: {{ $subscription->auto_renew?'Sim':'Não' }}</p></section>
+@if((float)$subscription->price>0 && $subscription->status!=='cancelled')<form method="post" action="{{ route('subscriber.payment.checkout') }}">@csrf<button class="primary-action">Pagar com Mercado Pago</button></form><p>O pagamento é realizado no ambiente seguro do Mercado Pago. A LuziCity não recebe nem armazena dados de cartão.</p>@endif
+<section class="settings-panel"><h2>Pagamentos</h2>@forelse($subscription->payments as $payment)<p>{{ $payment->created_at->format('d/m/Y H:i') }} · R$ {{ number_format((float)$payment->amount,2,',','.') }} · {{ $payment->status }} @if((float)$payment->refunded_amount>0)· reembolsado R$ {{ number_format((float)$payment->refunded_amount,2,',','.') }}@endif</p>@empty<p>Nenhum pagamento.</p>@endforelse</section>
+<section class="settings-panel"><h2>Histórico</h2>@forelse($subscription->histories as $history)<p>{{ $history->created_at->format('d/m/Y H:i') }} · {{ $history->event }} · {{ $history->from_status??'—' }} → {{ $history->to_status??'—' }}</p>@empty<p>Sem movimentações.</p>@endforelse</section>
+@if(!in_array($subscription->status,['cancelled','inactive']))<section class="settings-panel"><h2>Cancelar assinatura</h2><form method="post" action="{{ route('subscriber.cancel') }}" class="admin-form">@csrf<label>Motivo<textarea name="reason" required minlength="5"></textarea></label><button class="secondary-action">Confirmar cancelamento</button></form></section>@endif
+@else<a class="primary-action" href="{{ route('subscription-plans.index') }}">Conhecer os planos</a>@endif
+@endsection

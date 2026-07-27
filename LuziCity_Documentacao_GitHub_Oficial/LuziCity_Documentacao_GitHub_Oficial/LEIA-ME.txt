@@ -1,0 +1,7 @@
+PACOTE DE DOCUMENTAÇÃO OFICIAL LUZICITY
+
+1. Revise os arquivos antes de aplicar.
+2. Execute scripts\INSTALAR-DOCUMENTACAO.bat.
+3. O instalador cria backup do README, CHANGELOG, CONTRIBUTING e docs existentes.
+4. Execute testes e build antes do commit.
+5. Não publique .env, banco, backups, vendor, node_modules ou ZIPs internos.

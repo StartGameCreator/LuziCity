@@ -6,15 +6,15 @@ use App\Http\Controllers\AdminCategoryController;
 use App\Http\Controllers\AdminCompanyInfoController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminMediaBannerController;
-use App\Http\Controllers\AdminPushNotificationController;
-use App\Http\Controllers\PushSubscriptionController;
-use App\Http\Controllers\PwaController;
 use App\Http\Controllers\AdminNewsController;
+use App\Http\Controllers\AdminNewsDistributionController;
+use App\Http\Controllers\AdminPushNotificationController;
 use App\Http\Controllers\AdminRadioController;
 use App\Http\Controllers\AdminRealEstateController;
 use App\Http\Controllers\AdminRssFeedController;
 use App\Http\Controllers\AdminRssImportController;
 use App\Http\Controllers\AdminSiteContentController;
+use App\Http\Controllers\AdminSiteController;
 use App\Http\Controllers\AdminSocialLinkController;
 use App\Http\Controllers\AdminSocialLoginController;
 use App\Http\Controllers\AdminSystemHealthController;
@@ -23,14 +23,20 @@ use App\Http\Controllers\AdminTrackingPixelController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminVehicleClassifiedController;
 use App\Http\Controllers\AiWritingController;
+use App\Http\Controllers\AndroidAppLinkController;
+use App\Http\Controllers\AppleAppSiteAssociationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CityNewsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventGalleryController;
+use App\Http\Controllers\GlobalAdminController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\PushSubscriptionController;
+use App\Http\Controllers\PwaController;
 use App\Http\Controllers\RadioController;
 use App\Http\Controllers\RadioRequestController;
+use App\Http\Controllers\ReadinessController;
 use App\Http\Controllers\RealEstateController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
@@ -39,8 +45,11 @@ use App\Http\Controllers\VehicleClassifiedController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/.well-known/assetlinks.json', AndroidAppLinkController::class)->name('android.assetlinks');
+Route::get('/.well-known/apple-app-site-association', AppleAppSiteAssociationController::class)->name('ios.aasa');
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
-Route::get('/', HomeController::class)->name('home');
+Route::get('/health/ready', ReadinessController::class)->middleware('throttle:30,1')->name('health.ready');
+Route::get('/', HomeController::class)->middleware('cache.public:60')->name('home');
 Route::get('/offline', [PwaController::class, 'offline'])->name('pwa.offline');
 Route::get('/firebase-messaging-sw.js', [PwaController::class, 'firebaseServiceWorker'])->name('pwa.firebase-sw');
 Route::post('/push/subscriptions', [PushSubscriptionController::class, 'store'])->middleware('throttle:20,1')->name('push-subscriptions.store');
@@ -102,6 +111,9 @@ Route::prefix('admin')
         Route::put('/tracking-pixels', [AdminTrackingPixelController::class, 'update'])->name('tracking-pixels.update');
         Route::get('/company-info', [AdminCompanyInfoController::class, 'edit'])->name('company-info.edit');
         Route::put('/company-info', [AdminCompanyInfoController::class, 'update'])->name('company-info.update');
+        Route::get('/sites', [AdminSiteController::class, 'index'])->name('sites.index');
+        Route::post('/sites', [AdminSiteController::class, 'store'])->name('sites.store');
+        Route::put('/sites/{site}', [AdminSiteController::class, 'update'])->name('sites.update');
         Route::get('/upload-diagnostico', function () {
             $uploadTmp = ini_get('upload_tmp_dir') ?: sys_get_temp_dir();
             $systemTmp = ini_get('sys_temp_dir') ?: sys_get_temp_dir();
@@ -149,6 +161,9 @@ Route::prefix('admin')
         Route::put('/imoveis/{property}', [AdminRealEstateController::class, 'update'])->name('real-estate.update');
     });
 
+Route::get('/admin/global', GlobalAdminController::class)
+    ->middleware(['auth', 'roles:Super Admin'])->name('admin.global.index');
+
 Route::prefix('admin/news')
     ->name('admin.news.')
     ->middleware(['auth', 'roles:Super Admin,Admin,Jornalista,Colunista'])
@@ -158,6 +173,8 @@ Route::prefix('admin/news')
         Route::post('/', [AdminNewsController::class, 'store'])->name('store');
         Route::get('/{news}/edit', [AdminNewsController::class, 'edit'])->name('edit');
         Route::put('/{news}', [AdminNewsController::class, 'update'])->name('update');
+        Route::post('/{news}/distribuir', [AdminNewsDistributionController::class, 'store'])
+            ->middleware('roles:Super Admin,Admin')->name('distributions.store');
     });
 
 require __DIR__.'/ai_editorial.php';
@@ -206,6 +223,8 @@ require __DIR__.'/audio_advertising.php';
 
 require __DIR__.'/radio_dashboard.php';
 
+require __DIR__.'/azuracast.php';
+
 require __DIR__.'/tv.php';
 
 require __DIR__.'/videos.php';
@@ -217,3 +236,31 @@ require __DIR__.'/video_clips.php';
 require __DIR__.'/tv_dashboard.php';
 
 require __DIR__.'/advertisers.php';
+
+require __DIR__.'/campaigns.php';
+
+require __DIR__.'/media_kit.php';
+
+require __DIR__.'/commercial_finance.php';
+
+require __DIR__.'/sponsored_content.php';
+
+require __DIR__.'/subscription_plans.php';
+
+require __DIR__.'/paywall.php';
+
+require __DIR__.'/subscribers.php';
+
+require __DIR__.'/subscription_benefits.php';
+
+require __DIR__.'/subscription_payments.php';
+
+require __DIR__.'/analytics.php';
+
+require __DIR__.'/analytics_privacy.php';
+
+require __DIR__.'/print_editions.php';
+
+require __DIR__.'/print_templates.php';
+
+require __DIR__.'/queue_monitor.php';

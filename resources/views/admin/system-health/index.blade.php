@@ -7,6 +7,17 @@
         <p>Veja rapidamente o que esta funcionando, o que esta pendente e onde vale mexer primeiro.</p>
     </section>
 
+    <section class="content-band">
+        <h2>Observabilidade — última hora</h2>
+        <p>{{ $telemetry['requests'] }} requisições · {{ $telemetry['errors'] }} erros · {{ $telemetry['error_rate'] }}% de erro · média {{ $telemetry['average_ms'] }} ms · {{ $telemetry['slow'] }} lentas</p>
+        @forelse($alerts as $alert)
+            <p class="system-health-card is-{{ $alert['level'] }}"><strong>Alerta:</strong> {{ $alert['message'] }}</p>
+        @empty
+            <p>Nenhum alerta operacional ativo.</p>
+        @endforelse
+        <p><a href="{{ route('health.ready') }}" target="_blank" rel="noopener">Abrir endpoint de prontidão</a></p>
+    </section>
+
     <section class="system-health-summary" aria-label="Resumo da saude do sistema">
         <article class="settings-panel system-health-summary-card is-ok">
             <span>Ok</span>

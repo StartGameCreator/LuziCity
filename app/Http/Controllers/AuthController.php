@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Services\SubscriptionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -44,7 +46,7 @@ class AuthController extends Controller
         return redirect()->intended(route('dashboard'));
     }
 
-    public function register(Request $request): RedirectResponse
+    public function register(Request $request, SubscriptionService $subscriptions): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -59,6 +61,13 @@ class AuthController extends Controller
         ]);
 
         $user->assignRole('Usuario');
+        $free = SubscriptionPlan::where('slug', 'gratuito')->first();
+        if ($free) {
+            $subscriptions->update($user, [
+                'subscription_plan_id' => $free->id, 'status' => 'active', 'billing_cycle' => 'monthly',
+                'price' => 0, 'auto_renew' => false, 'starts_at' => now(), 'assigned_by' => $user->id,
+            ], $user);
+        }
 
         Auth::login($user);
 

@@ -76,6 +76,16 @@ async function registerPwa() {
         window.location.reload();
     });
 
+    const checkForUpdate = () => registration.update().catch((error) => {
+        console.debug('[Luzicity PWA Update]', error);
+    });
+
+    window.setInterval(checkForUpdate, 60 * 60 * 1000);
+    window.addEventListener('online', checkForUpdate);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkForUpdate();
+    });
+
     return registration;
 }
 
@@ -209,7 +219,9 @@ async function configurePush() {
         label.textContent = text;
     };
 
-    if (Notification.permission === 'granted') {
+    const storedToken = localStorage.getItem('luzicity-fcm-token');
+
+    if (Notification.permission === 'granted' && storedToken) {
         setStatus('active', 'Avisos ativos');
     } else if (Notification.permission === 'denied') {
         setStatus('blocked', 'Avisos bloqueados');
@@ -228,6 +240,41 @@ async function configurePush() {
         }
 
         button.disabled = true;
+
+        if (button.dataset.status === 'active') {
+            setStatus('loading', 'Desativando...');
+
+            try {
+                const token = localStorage.getItem('luzicity-fcm-token');
+
+                if (token) {
+                    const response = await fetch('/push/subscriptions', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify({ token }),
+                    });
+
+                    if (!response.ok) throw new Error(`Falha ao remover inscrição (${response.status}).`);
+                }
+
+                localStorage.removeItem('luzicity-fcm-token');
+                setStatus('idle', 'Ativar avisos');
+                toast.show('Avisos desativados', 'Este dispositivo não receberá novas notificações.');
+            } catch (error) {
+                console.error('[Luzicity Push Disable]', error);
+                setStatus('active', 'Avisos ativos');
+                toast.show('Falha ao desativar avisos', 'Tente novamente em alguns instantes.');
+            } finally {
+                button.disabled = false;
+            }
+
+            return;
+        }
+
         setStatus('loading', 'Ativando...');
 
         try {
@@ -313,3 +360,116 @@ window.addEventListener('load', () => {
         console.error('[Luzicity Push]', error);
     });
 });
+
+const configureFirstPartyAnalytics = () => {
+    const endpoint = '/analytics/coletar';
+    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (!token || !window.crypto?.randomUUID || !document.cookie.split('; ').includes('luzicity_analytics_consent=accepted')) return;
+
+    const eventUuid = window.crypto.randomUUID();
+    const params = new URLSearchParams(window.location.search);
+    const startedAt = Date.now();
+    let visibleSince = document.visibilityState === 'visible' ? Date.now() : null;
+    let engagedMilliseconds = 0;
+    let maxScroll = 0;
+
+    const payload = (event) => ({
+        event_uuid: eventUuid,
+        event,
+        page_path: `${window.location.pathname}${window.location.search}`,
+        page_title: document.title,
+        news_article_id: Number(document.querySelector('meta[name="analytics-news-id"]')?.content) || null,
+        referrer: document.referrer || null,
+        source: params.get('utm_source'),
+        medium: params.get('utm_medium'),
+        campaign: params.get('utm_campaign'),
+        content: params.get('utm_content'),
+        term: params.get('utm_term'),
+        reading_time_seconds: Math.min(86400, Math.round((engagedMilliseconds + (visibleSince ? Date.now() - visibleSince : 0)) / 1000)),
+        max_scroll_percent: maxScroll,
+    });
+
+    const send = (event) => fetch(endpoint, {
+        method: 'POST',
+        keepalive: true,
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': token, 'X-Analytics-Consent': 'accepted'},
+        body: JSON.stringify(payload(event)),
+    }).catch(() => {});
+
+    const updateScroll = () => {
+        const available = document.documentElement.scrollHeight - window.innerHeight;
+        maxScroll = Math.max(maxScroll, available > 0 ? Math.min(100, Math.round((window.scrollY / available) * 100)) : 100);
+    };
+    window.addEventListener('scroll', updateScroll, {passive: true});
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden' && visibleSince) {
+            engagedMilliseconds += Date.now() - visibleSince;
+            visibleSince = null;
+            send('engagement');
+        } else if (document.visibilityState === 'visible') {
+            visibleSince = Date.now();
+        }
+    });
+    window.addEventListener('pagehide', () => send('engagement'));
+    document.querySelectorAll('[data-analytics-share]').forEach((link) => {
+        link.addEventListener('click', () => send('share'));
+    });
+    send('page_view');
+};
+
+document.addEventListener('DOMContentLoaded', configureFirstPartyAnalytics);
+
+const configureNativeRadio = () => {
+    const root = document.querySelector('[data-radio-native-state]');
+    if (!root) return;
+
+    const endpoint = root.dataset.stateUrl;
+    const title = root.querySelector('[data-radio-native-title]');
+    const artist = root.querySelector('[data-radio-native-artist]');
+    const station = root.querySelector('[data-radio-native-station]');
+    const listeners = root.querySelector('[data-radio-native-listeners]');
+    let failures = 0;
+    let timer;
+
+    const update = async () => {
+        try {
+            const response = await fetch(endpoint, {headers: {Accept: 'application/json'}});
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const state = await response.json();
+            failures = 0;
+
+            if (title) title.textContent = state.title || 'Rádio Web Luzicity';
+            if (artist) artist.textContent = state.artist || (state.is_online ? 'Transmissão ao vivo' : 'Offline');
+            if (station) station.textContent = state.station || 'Rádio Web Luzicity';
+            if (listeners) listeners.textContent = `${state.listeners || 0} ouvintes`;
+
+            document.querySelectorAll('[data-radio-audio]').forEach((audio) => {
+                if (state.stream_url && audio.src !== state.stream_url) {
+                    const wasPlaying = !audio.paused;
+                    audio.src = state.stream_url;
+                    if (wasPlaying) audio.play().catch(() => {});
+                }
+            });
+
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: state.title || 'Rádio Web Luzicity',
+                    artist: state.artist || state.station || 'Luzicity',
+                    album: state.album || 'Ao vivo',
+                    artwork: state.art ? [{src: state.art}] : [],
+                });
+            }
+        } catch (error) {
+            failures += 1;
+            console.warn('[Luzicity Rádio]', error);
+        } finally {
+            const delay = Math.min(60000, 15000 * Math.max(1, failures));
+            timer = window.setTimeout(update, delay);
+        }
+    };
+
+    update();
+    window.addEventListener('pagehide', () => window.clearTimeout(timer), {once: true});
+};
+
+document.addEventListener('DOMContentLoaded', configureNativeRadio);

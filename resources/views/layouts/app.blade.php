@@ -1,6 +1,7 @@
 @php
     $googleAdsClient = trim((string) data_get(\App\Models\Setting::googleAds(), 'client', ''));
     $shouldShowGoogleAds = ! auth()->user()?->hasAdFreeAccess();
+    $analyticsConsent = request()->cookie('luzicity_analytics_consent');
     $trackingPixels = \App\Models\Setting::trackingPixels();
     $metaPixelId = trim((string) data_get($trackingPixels, 'meta_pixel_id', ''));
     $tiktokPixelId = trim((string) data_get($trackingPixels, 'tiktok_pixel_id', ''));
@@ -23,8 +24,11 @@
     $jsonLd = data_get($metaData, 'json_ld');
     $metaImageUrl = filled($metaImage) ? (\Illuminate\Support\Str::startsWith($metaImage, ['http://', 'https://']) ? $metaImage : asset($metaImage)) : null;
     $faviconUrl = \Illuminate\Support\Str::startsWith($siteFavicon, ['http://', 'https://']) ? $siteFavicon : asset($siteFavicon);
-    $themeBackground = trim((string) config('luzicity.theme.background_image'));
+    $resolvedSite = \App\Models\Site::current();
+    $themeBackground = trim((string) ($resolvedSite?->theme_background_path ?: config('luzicity.theme.background_image')));
     $themeOpacity = trim((string) config('luzicity.theme.background_opacity', '0.34'));
+    $themeStyle = '--accent: '.($resolvedSite?->theme_primary ?: '#0067c0').'; --accent-strong: '.($resolvedSite?->theme_secondary ?: '#004e8c').';';
+    if (filled($themeBackground)) $themeStyle .= ' --theme-photo: url('.asset($themeBackground).'); --theme-photo-opacity: '.$themeOpacity.';';
     $firebaseConfig = [
         'apiKey' => config('services.firebase.api_key'),
         'authDomain' => config('services.firebase.auth_domain'),
@@ -41,6 +45,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @if(data_get($metaData, 'analytics_news_id'))<meta name="analytics-news-id" content="{{ data_get($metaData, 'analytics_news_id') }}">@endif
     <meta name="luzicity-firebase-config" content='@json($firebaseConfig)'>
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#f3f6fb" media="(prefers-color-scheme: light)">
@@ -76,10 +81,10 @@
     @if($jsonLd)
         <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) !!}</script>
     @endif
-    @if($shouldShowGoogleAds && filled($googleAdsClient))
+    @if($analyticsConsent === 'accepted' && $shouldShowGoogleAds && filled($googleAdsClient))
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ $googleAdsClient }}" crossorigin="anonymous"></script>
     @endif
-    @if(filled($metaPixelId))
+    @if($analyticsConsent === 'accepted' && filled($metaPixelId))
         <script>
             !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
             n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
@@ -90,7 +95,7 @@
             fbq('track', 'PageView');
         </script>
     @endif
-    @if(filled($tiktokPixelId))
+    @if($analyticsConsent === 'accepted' && filled($tiktokPixelId))
         <script>
             !function (w, d, t) {
                 w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"];
@@ -113,13 +118,39 @@
             }
         })();
     </script>
+    @php
+        // O Vite cria public/hot em desenvolvimento. Se ele for encerrado sem
+        // remover o marcador, o Laravel apontaria todos os assets para uma
+        // porta morta. Esta verificação local restaura automaticamente o build.
+        if (app()->environment('local') && file_exists(public_path('hot'))) {
+            $hotOrigin = rtrim(trim((string) file_get_contents(public_path('hot'))), '/');
+            $hotIsHealthy = false;
+
+            try {
+                $hotIsHealthy = \Illuminate\Support\Facades\Cache::remember(
+                    'vite-hot-health:'.sha1($hotOrigin.'|'.filemtime(public_path('hot'))),
+                    now()->addSeconds(5),
+                    fn () => \Illuminate\Support\Facades\Http::connectTimeout(1)
+                        ->timeout(3)
+                        ->get($hotOrigin.'/@vite/client')
+                        ->successful(),
+                );
+            } catch (\Throwable) {
+                $hotIsHealthy = false;
+            }
+
+            if (! $hotIsHealthy) {
+                @unlink(public_path('hot'));
+            }
+        }
+    @endphp
     @if(file_exists(public_path('build/manifest.json')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
         <style>{!! file_get_contents(resource_path('css/app.css')) !!}</style>
     @endif
 </head>
-<body @class(['has-theme-photo' => filled($themeBackground)]) style="{{ filled($themeBackground) ? '--theme-photo: url('.asset($themeBackground).'); --theme-photo-opacity: '.$themeOpacity.';' : '' }}">
+<body @class(['has-theme-photo' => filled($themeBackground)]) style="{{ $themeStyle }}">
     <div class="app-background" aria-hidden="true"></div>
     <a class="skip-link" href="#conteudo">Pular para o conteudo</a>
 
@@ -133,6 +164,15 @@
                 @endif
                 @if(auth()->user()->hasAnyRole(['Super Admin', 'Admin']))
                     <a href="{{ route('admin.advertisers.index') }}"><x-app-icon name="user" /> Anunciantes</a>
+                    <a href="{{ route('admin.campaigns.index') }}"><x-app-icon name="dashboard" /> Campanhas</a>
+                    <a href="{{ route('admin.media-kit.index') }}"><x-app-icon name="dashboard" /> Mídia Kit</a>
+                    <a href="{{ route('admin.commercial-finance.index') }}"><x-app-icon name="dashboard" /> Financeiro</a>
+                    <a href="{{ route('admin.sponsored-content.index') }}"><x-app-icon name="dashboard" /> Patrocinados</a>
+                    <a href="{{ route('admin.subscription-plans.index') }}"><x-app-icon name="dashboard" /> Planos</a>
+                    <a href="{{ route('admin.paywall.index') }}"><x-app-icon name="dashboard" /> Paywall</a>
+                    <a href="{{ route('admin.subscribers.index') }}"><x-app-icon name="user" /> Assinantes</a>
+                    <a href="{{ route('admin.subscription-benefits.index') }}"><x-app-icon name="dashboard" /> Benefícios</a>
+                    <a href="{{ route('admin.analytics.index') }}"><x-app-icon name="dashboard" /> Analytics</a>
                     <a href="{{ route('admin.system-health.index') }}"><x-app-icon name="dashboard" /> Saúde</a>
                     <a href="{{ route('admin.users.index') }}"><x-app-icon name="user" /> Usuarios</a>
                     <a href="{{ route('admin.social-login.edit') }}"><x-app-icon name="login" /> Login Social</a>
@@ -233,6 +273,18 @@
 
         @yield('content')
     </main>
+
+    @if($analyticsConsent === null)
+        <aside class="settings-panel" role="dialog" aria-label="Preferências de privacidade" style="position:fixed;left:1rem;right:1rem;bottom:1rem;z-index:1000;max-width:760px;margin:auto">
+            <h2>Privacidade e analytics</h2>
+            <p>Usamos analytics próprio para entender audiência e melhorar o portal. A coleta opcional só começa com sua autorização.</p>
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+                <form method="post" action="{{ route('privacy.analytics.consent') }}">@csrf<input type="hidden" name="choice" value="accepted"><button class="primary-action">Aceitar analytics</button></form>
+                <form method="post" action="{{ route('privacy.analytics.consent') }}">@csrf<input type="hidden" name="choice" value="denied"><button class="secondary-action">Recusar</button></form>
+                <a href="{{ route('privacy.analytics') }}">Saiba mais</a>
+            </div>
+        </aside>
+    @endif
 
     <footer class="site-footer" aria-label="Dados da empresa">
         <div>

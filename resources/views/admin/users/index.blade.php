@@ -31,6 +31,14 @@
                             @endforeach
                         </div>
                     </fieldset>
+                    @if($currentSite)
+                    <fieldset><legend>Permissões em {{ $currentSite->name }}</legend>
+                        @foreach(['manage_content'=>'Conteúdo','manage_users'=>'Usuários','manage_media'=>'Mídia','manage_ads'=>'Anúncios'] as $permission=>$label)
+                        <label class="inline-check"><input type="checkbox" name="site_permissions[]" value="{{ $permission }}" @checked(in_array($permission,$user->sitePermissions($currentSite),true))> {{ $label }}</label>
+                        @endforeach
+                        <small>Sem seleção mantém as permissões herdadas dos papéis atuais.</small>
+                    </fieldset>
+                    @endif
 
                     <label>
                         Assinatura
@@ -40,6 +48,8 @@
                             @endforeach
                         </select>
                     </label>
+                    <label>Plano<select name="subscription_plan_id"><option value="">Legado / sem plano</option>@foreach($plans as $plan)<option value="{{ $plan->id }}" @selected($user->subscription?->subscription_plan_id===$plan->id)>{{ $plan->name }}</option>@endforeach</select></label>
+                    <label>Ciclo<select name="billing_cycle"><option value="monthly" @selected(($user->subscription?->billing_cycle??'monthly')==='monthly')>Mensal</option><option value="yearly" @selected($user->subscription?->billing_cycle==='yearly')>Anual</option></select></label>
 
                     <label>
                         Fim da assinatura

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Crypt;
 
 class Setting extends Model
 {
@@ -12,6 +13,30 @@ class Setting extends Model
         'key',
         'value',
     ];
+
+    public function getValueAttribute(?string $value): ?string
+    {
+        if ($value !== null && str_starts_with($value, 'enc:')) {
+            return Crypt::decryptString(substr($value, 4));
+        }
+
+        return $value;
+    }
+
+    public function setValueAttribute(?string $value): void
+    {
+        $group = (string) ($this->attributes['group'] ?? $this->group ?? '');
+        $key = (string) ($this->attributes['key'] ?? $this->key ?? '');
+        $this->attributes['value'] = $value !== null && $this->isSensitive($group, $key)
+            ? (str_starts_with($value, 'enc:') ? $value : 'enc:'.Crypt::encryptString($value))
+            : $value;
+    }
+
+    private function isSensitive(string $group, string $key): bool
+    {
+        return ($group === 'ai' && in_array($key, ['openai_api_key', 'gemini_api_key', 'copilot_api_key'], true))
+            || ($group === 'social_login' && str_ends_with($key, '_client_secret'));
+    }
 
     public static function socialLinks(): array
     {
@@ -292,15 +317,19 @@ class Setting extends Model
 
         return $settings;
     }
+
     public static function siteIdentity(): array
     {
         $company = self::companyInfo();
+        $site = Site::current();
 
         return [
-            'name' => $company['site_name'] ?: 'Luzicity',
-            'logo' => $company['site_logo'] ?: '',
-            'favicon' => $company['site_favicon'] ?: ($company['site_logo'] ?: ''),
-            'share_image' => $company['default_share_image'] ?: ($company['site_logo'] ?: ''),
+            'name' => $site?->name ?: ($company['site_name'] ?: 'Luzicity'),
+            'logo' => $site?->logo_path ?: ($company['site_logo'] ?: ''),
+            'favicon' => $site?->favicon_path ?: ($site?->logo_path ?: ($company['site_favicon'] ?: ($company['site_logo'] ?: ''))),
+            'share_image' => $site?->setting('share_image') ?: ($company['default_share_image'] ?: ($site?->logo_path ?: ($company['site_logo'] ?: ''))),
+            'city' => $site?->city,
+            'state' => $site?->state,
         ];
     }
 
